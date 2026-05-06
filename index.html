@@ -733,6 +733,7 @@
 
 <header class="app-bar">
   <button class="icon-btn" id="back-btn" style="display:none">‹ Back</button>
+  <button class="icon-btn" id="menu-btn" title="Backup & restore">⋯</button>
   <div class="app-title">Stitchnest<span class="dot">.</span></div>
   <button class="icon-btn" id="delete-btn" style="display:none">Delete</button>
   <span id="header-spacer" style="width:60px"></span>
@@ -898,8 +899,33 @@
   </div>
 </div>
 
+<!-- Backup & restore modal -->
+<div class="modal-overlay" id="backup-modal">
+  <div class="modal">
+    <h3>Backup & restore</h3>
+    <p style="margin:0 0 16px;color:var(--ink-soft);font-size:14px;line-height:1.45">
+      Save all your projects (patterns, drawings, counters, notes) to a single file you can store in Files, iCloud Drive, or send to another device.
+    </p>
+    <button class="btn btn-primary" id="export-btn" style="width:100%;margin-bottom:10px">
+      Export backup
+    </button>
+    <button class="btn btn-secondary" id="import-trigger-btn" style="width:100%;margin-bottom:16px">
+      Import from a backup file
+    </button>
+    <div style="font-size:12px;color:var(--ink-soft);line-height:1.45;margin-bottom:16px">
+      Importing merges the backup into what's already here. Projects with the same ID get replaced; new ones are added.
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="backup-close" style="width:100%">Done</button>
+    </div>
+  </div>
+</div>
+
 <!-- Hidden file input for adding pattern to existing project -->
 <input type="file" id="add-pdf-input" accept="application/pdf" style="display:none" />
+
+<!-- Hidden file input for importing backup -->
+<input type="file" id="import-file-input" accept=".json,application/json" style="display:none" />
 
 <div class="toast" id="toast"></div>
 
@@ -1016,6 +1042,7 @@
     document.getElementById('detail-view').classList.add('hidden');
     document.getElementById('back-btn').style.display = 'none';
     document.getElementById('delete-btn').style.display = 'none';
+    document.getElementById('menu-btn').style.display = 'inline-block';
     document.getElementById('header-spacer').style.display = 'inline-block';
     document.getElementById('add-project-btn').style.display = 'flex';
     renderHome();
@@ -1028,6 +1055,7 @@
     document.getElementById('detail-view').classList.remove('hidden');
     document.getElementById('back-btn').style.display = 'inline-block';
     document.getElementById('delete-btn').style.display = 'inline-block';
+    document.getElementById('menu-btn').style.display = 'none';
     document.getElementById('header-spacer').style.display = 'none';
     document.getElementById('add-project-btn').style.display = 'none';
 
@@ -1594,6 +1622,150 @@
     saveProjects(projects);
     showHome();
     toast('Project deleted');
+  });
+
+  // ------- Backup & restore -------
+  const backupModal = document.getElementById('backup-modal');
+  document.getElementById('menu-btn').addEventListener('click', () => backupModal.classList.add('open'));
+  document.getElementById('backup-close').addEventListener('click', () => backupModal.classList.remove('open'));
+  backupModal.addEventListener('click', (e) => { if (e.target === backupModal) backupModal.classList.remove('open'); });
+
+  function blobToBase64(blob) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onloadend = () => resolve(r.result);
+      r.onerror = () => reject(r.error);
+      r.readAsDataURL(blob);
+    });
+  }
+  function base64ToBlob(dataUrl) {
+    const [meta, b64] = dataUrl.split(',');
+    const mime = (meta.match(/:(.*?);/) || [,'application/pdf'])[1];
+    const bin = atob(b64);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    return new Blob([arr], { type: mime });
+  }
+
+  async function buildBackup() {
+    const out = {
+      format: 'stitchnest-backup',
+      version: 1,
+      exportedAt: Date.now(),
+      app: 'Stitchnest',
+      projects: []
+    };
+    for (const p of projects) {
+      const proj = JSON.parse(JSON.stringify(p)); // deep clone
+      if (p.hasPdf) {
+        try {
+          const blob = await getPdf(p.id);
+          if (blob) proj.pdfData = await blobToBase64(blob);
+        } catch (err) {
+          console.warn('Could not read PDF for', p.id, err);
+        }
+      }
+      out.projects.push(proj);
+    }
+    return out;
+  }
+
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  document.getElementById('export-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('export-btn');
+    btn.disabled = true;
+    btn.textContent = 'Preparing...';
+    try {
+      const data = await buildBackup();
+      const json = JSON.stringify(data);
+      const blob = new Blob([json], { type: 'application/json' });
+      const today = new Date().toISOString().slice(0, 10);
+      const filename = `stitchnest-backup-${today}.json`;
+      const file = new File([blob], filename, { type: 'application/json' });
+
+      // Prefer Web Share with files (iOS Safari shows the native share sheet,
+      // including "Save to Files" which writes to iCloud Drive or On My iPhone).
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], title: filename });
+        } catch (err) {
+          // User cancelled or share failed; fall back to download
+          if (err.name !== 'AbortError') downloadBlob(blob, filename);
+        }
+      } else {
+        downloadBlob(blob, filename);
+      }
+      toast('Backup ready');
+    } catch (err) {
+      console.error(err);
+      toast('Export failed');
+    }
+    btn.disabled = false;
+    btn.textContent = 'Export backup';
+  });
+
+  document.getElementById('import-trigger-btn').addEventListener('click', () => {
+    document.getElementById('import-file-input').click();
+  });
+
+  document.getElementById('import-file-input').addEventListener('change', async (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    try {
+      const text = await f.text();
+      const data = JSON.parse(text);
+      if (data.format !== 'stitchnest-backup' || !Array.isArray(data.projects)) {
+        toast('Not a valid Stitchnest backup');
+        return;
+      }
+      const incoming = data.projects;
+      const existingIds = new Set(projects.map(p => p.id));
+      const replaceCount = incoming.filter(p => existingIds.has(p.id)).length;
+      const addCount = incoming.length - replaceCount;
+      const ok = confirm(
+        `This backup has ${incoming.length} project${incoming.length === 1 ? '' : 's'}.\n\n` +
+        `${addCount} new, ${replaceCount} will replace existing matching project${replaceCount === 1 ? '' : 's'}.\n\n` +
+        `Continue?`
+      );
+      if (!ok) { e.target.value = ''; return; }
+
+      for (const inProj of incoming) {
+        // Restore PDF blob if present
+        if (inProj.pdfData) {
+          try {
+            const blob = base64ToBlob(inProj.pdfData);
+            await putPdf(inProj.id, blob);
+            inProj.hasPdf = true;
+          } catch (err) {
+            console.warn('PDF restore failed for', inProj.id, err);
+            inProj.hasPdf = false;
+          }
+          delete inProj.pdfData;
+        }
+        // Replace by id, or push new
+        const idx = projects.findIndex(p => p.id === inProj.id);
+        if (idx >= 0) projects[idx] = inProj;
+        else projects.push(inProj);
+      }
+      saveProjects(projects);
+      backupModal.classList.remove('open');
+      showHome();
+      toast(`Imported ${incoming.length} project${incoming.length === 1 ? '' : 's'}`);
+    } catch (err) {
+      console.error(err);
+      toast('Could not read that file');
+    }
+    e.target.value = '';
   });
 
   // ------- Init -------
