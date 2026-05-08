@@ -5,28 +5,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-<meta name="apple-mobile-web-app-title" content="Stitchnest" />
+<meta name="apple-mobile-web-app-title" content="stitchnest" />
 <meta name="mobile-web-app-capable" content="yes" />
-<meta name="theme-color" content="#c4685a" />
+<meta name="theme-color" content="#0A3323" />
 <meta name="description" content="Pattern library, stitch and row counters, drawing on patterns, and action-row alerts for knitters." />
 <link rel="manifest" href="manifest.json" />
 <link rel="apple-touch-icon" href="apple-touch-icon.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png" />
-<title>Stitchnest — Knitting Companion</title>
+<title>stitchnest — knitting companion</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
   :root {
-    --bg: #f7f1e8;
-    --surface: #ffffff;
-    --surface-2: #fdf8f0;
-    --ink: #2a2522;
-    --ink-soft: #6b5d54;
-    --line: #e8ddcc;
-    --accent: #c4685a;
-    --accent-soft: #f0d8d2;
-    --sage: #7a9b76;
-    --shadow: 0 1px 3px rgba(60, 40, 30, 0.06), 0 4px 16px rgba(60, 40, 30, 0.05);
+    /* Acorn & Ivy palette — stitchnest is the light-mode sibling of storysprout.
+       Same colors, flipped: cream is bg, deep forest is text, rose is the accent. */
+    --bg: #F7F4D5;            /* storysprout cream */
+    --surface: #FFFFFF;        /* elevated cards */
+    --surface-2: #FBF8E4;      /* tinted cream — alt surface */
+    --ink: #0A3323;            /* storysprout deep forest — primary text */
+    --ink-soft: #4A6E5A;       /* muted forest — secondary text */
+    --line: #E8E4C5;           /* warm cream border */
+    --accent: #D3968C;         /* storysprout rose — buttons & active states */
+    --accent-soft: #F2DDD5;    /* light rose tint */
+    --sage: #839958;           /* storysprout moss — secondary accent */
+    --sage-soft: #EDF1E0;      /* light moss tint */
+    --shadow: 0 1px 3px rgba(10, 51, 35, 0.07), 0 4px 16px rgba(10, 51, 35, 0.06);
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body {
@@ -138,6 +141,96 @@
     color: var(--ink-soft);
     margin-top: auto;
   }
+  .project-specs {
+    font-size: 11px;
+    color: var(--sage);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  /* Pattern info section */
+  .pattern-info-section {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 14px 14px 12px;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+  }
+  .pattern-info-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .pattern-info-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--ink-soft);
+    font-weight: 600;
+  }
+  .detect-btn {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .detect-btn:disabled { opacity: 0.5; cursor: default; }
+  .info-row {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 10px;
+    align-items: center;
+    padding: 6px 0;
+  }
+  .info-row + .info-row {
+    border-top: 1px solid var(--line);
+  }
+  .info-label {
+    font-size: 12px;
+    color: var(--ink-soft);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .info-input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--ink);
+    padding: 6px 4px;
+    border-radius: 6px;
+  }
+  .info-input:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: -1px;
+    background: var(--surface-2);
+  }
+  .info-input::placeholder {
+    color: var(--ink-soft);
+    opacity: 0.6;
+  }
+  .detect-toast {
+    font-size: 11px;
+    color: var(--sage);
+    padding: 6px 0 0;
+    text-align: right;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .detect-toast.show { opacity: 1; }
 
   /* FAB */
   .fab {
@@ -154,7 +247,7 @@
     font-weight: 300;
     line-height: 1;
     cursor: pointer;
-    box-shadow: 0 4px 16px rgba(196, 104, 90, 0.4);
+    box-shadow: 0 4px 16px rgba(211, 150, 140, 0.45);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -213,7 +306,7 @@
   .pdf-nav button:disabled { opacity: 0.4; }
   .pdf-page-info { color: var(--ink-soft); font-variant-numeric: tabular-nums; }
   .pdf-canvas-wrap {
-    background: #ece2d2;
+    background: #E8E4C5;
     text-align: center;
     padding: 12px;
     overflow: auto;
@@ -384,7 +477,7 @@
     color: white;
     border-color: var(--accent);
   }
-  .counter-btn.plus:active { background: #a85547; }
+  .counter-btn.plus:active { background: #B07F76; }
   .counter-reset {
     background: transparent;
     border: none;
@@ -413,14 +506,14 @@
   }
   .action-banner.show { display: flex; }
   .action-banner.upcoming {
-    background: #fdf6e0;
-    border-color: #d9b94a;
-    color: #8a6914;
+    background: var(--sage-soft);
+    border-color: var(--sage);
+    color: #4A5C3A;
     animation: none;
   }
   @keyframes pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(196, 104, 90, 0.3); }
-    50% { box-shadow: 0 0 0 8px rgba(196, 104, 90, 0); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(211, 150, 140, 0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(211, 150, 140, 0); }
   }
   .action-banner-icon {
     font-size: 22px;
@@ -436,7 +529,7 @@
   }
 
   .counter.action-active {
-    background: linear-gradient(180deg, #fbe7e0 0%, var(--surface) 100%);
+    background: linear-gradient(180deg, var(--accent-soft) 0%, var(--surface) 100%);
     border-color: var(--accent);
   }
 
@@ -491,8 +584,8 @@
     font-weight: 600;
   }
   .action-item.next {
-    border-color: #d9b94a;
-    background: #fdf6e0;
+    border-color: var(--sage);
+    background: var(--sage-soft);
   }
   .action-row-num {
     background: var(--surface);
@@ -686,7 +779,7 @@
   .file-picker.has-file {
     border-color: var(--sage);
     color: var(--sage);
-    background: #eef3ec;
+    background: var(--sage-soft);
   }
   .file-picker input { display: none; }
   .modal-actions {
@@ -734,7 +827,7 @@
 <header class="app-bar">
   <button class="icon-btn" id="back-btn" style="display:none">‹ Back</button>
   <button class="icon-btn" id="menu-btn" title="Backup & restore">⋯</button>
-  <div class="app-title">Stitchnest<span class="dot">.</span></div>
+  <div class="app-title">stitchnest<span class="dot">.</span></div>
   <button class="icon-btn" id="delete-btn" style="display:none">Delete</button>
   <span id="header-spacer" style="width:60px"></span>
 </header>
@@ -750,6 +843,26 @@
     <div class="detail-header">
       <h1 class="detail-title" id="detail-title"></h1>
       <div class="detail-sub" id="detail-sub"></div>
+    </div>
+
+    <div class="pattern-info-section">
+      <div class="pattern-info-header">
+        <div class="pattern-info-title">Pattern info</div>
+        <button class="detect-btn" id="detect-pattern-btn" disabled>Detect from PDF</button>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Yarn</div>
+        <input type="text" class="info-input" id="info-yarn" placeholder="e.g. Cascade 220 worsted" autocomplete="off" />
+      </div>
+      <div class="info-row">
+        <div class="info-label">Needles / Hook</div>
+        <input type="text" class="info-input" id="info-needles" placeholder="e.g. US 8 / 5mm" autocomplete="off" />
+      </div>
+      <div class="info-row">
+        <div class="info-label">Gauge</div>
+        <input type="text" class="info-input" id="info-gauge" placeholder='e.g. 18 sts × 24 rows = 4″' autocomplete="off" />
+      </div>
+      <div class="detect-toast" id="detect-toast"></div>
     </div>
 
     <div class="pdf-section" id="pdf-section">
@@ -768,10 +881,10 @@
         <div class="draw-toolbar" id="draw-toolbar">
           <button class="draw-mode-btn" id="draw-mode-btn">✎ Draw</button>
           <div class="tool-set" id="tool-set">
-            <button class="color-swatch active" data-color="#2a2522" style="background:#2a2522"></button>
-            <button class="color-swatch" data-color="#c4685a" style="background:#c4685a"></button>
+            <button class="color-swatch active" data-color="#0A3323" style="background:#0A3323"></button>
+            <button class="color-swatch" data-color="#A66B5F" style="background:#A66B5F"></button>
             <button class="color-swatch" data-color="#3b6dad" style="background:#3b6dad"></button>
-            <button class="color-swatch" data-color="#7a9b76" style="background:#7a9b76"></button>
+            <button class="color-swatch" data-color="#839958" style="background:#839958"></button>
             <button class="color-swatch" data-color="rgba(245,210,80,0.5)" style="background:#f5d250"></button>
             <button class="tool-icon-btn" id="eraser-btn" title="Eraser">⌫</button>
             <button class="tool-icon-btn" id="undo-btn" title="Undo">↶</button>
@@ -1020,13 +1133,16 @@
     projects.forEach(p => {
       const card = document.createElement('button');
       card.className = 'project-card';
+      const specsLine = buildSpecsLine(p);
       card.innerHTML = `
         <div class="project-folder">📁</div>
         <div class="project-name"></div>
         <div class="project-meta">
           ${p.hasPdf ? '📄 pattern' : 'no pattern'} · ${p.rows || 0} rows
-        </div>`;
+        </div>
+        ${specsLine ? `<div class="project-specs"></div>` : ''}`;
       card.querySelector('.project-name').textContent = p.name;
+      if (specsLine) card.querySelector('.project-specs').textContent = specsLine;
       card.addEventListener('click', () => openProject(p.id));
       grid.appendChild(card);
     });
@@ -1066,6 +1182,11 @@
     document.getElementById('row-count').textContent = p.rows || 0;
     document.getElementById('notes-textarea').value = p.notes || '';
     document.getElementById('notes-saved').classList.remove('show');
+    document.getElementById('info-yarn').value = p.yarn || '';
+    document.getElementById('info-needles').value = p.needles || '';
+    document.getElementById('info-gauge').value = p.gauge || '';
+    document.getElementById('detect-pattern-btn').disabled = !p.hasPdf;
+    document.getElementById('detect-toast').classList.remove('show');
     renderActionRows();
     updateActionAlert();
 
@@ -1094,6 +1215,10 @@
     document.getElementById('pdf-empty').classList.add('hidden');
     document.getElementById('pdf-loaded').classList.remove('hidden');
     await renderPage();
+    // Now that the PDF is loaded, enable manual re-detect and try auto-detect
+    // for empty fields (no overwrite of manual edits).
+    document.getElementById('detect-pattern-btn').disabled = false;
+    autoDetectIfEmpty().catch(err => console.warn('auto-detect failed:', err));
   }
 
   async function renderPage() {
@@ -1137,7 +1262,7 @@
   const drawCanvas = document.getElementById('draw-canvas');
   const drawCtx = drawCanvas.getContext('2d');
   let drawMode = false;
-  let currentColor = '#2a2522';
+  let currentColor = '#0A3323';
   let currentTool = 'pen'; // 'pen' or 'eraser'
   let isDrawing = false;
   let activeStroke = null;
@@ -1593,6 +1718,176 @@
     toast('Saved');
   });
 
+  // ------- Pattern info (yarn / needles / gauge) -------
+  // Detected via PDF.js text extraction; user can always override.
+
+  function buildSpecsLine(p) {
+    // Concise spec line for the home card. Shows needles + weight when present.
+    const parts = [];
+    if (p.needles) {
+      // Pull just the size out (e.g. "US 8" or "5mm") for compactness
+      const m = String(p.needles).match(/(US\s*\d+(?:\.5)?|\d+(?:\.\d+)?\s*mm)/i);
+      parts.push(m ? m[1] : String(p.needles).slice(0, 12));
+    }
+    if (p.yarn) {
+      const w = detectWeight(p.yarn);
+      if (w) parts.push(w);
+    }
+    return parts.join(' · ');
+  }
+
+  function detectWeight(text) {
+    const weights = [
+      ['super bulky', 'super bulky'],
+      ['cobweb', 'cobweb'],
+      ['fingering', 'fingering'],
+      ['worsted', 'worsted'],
+      ['chunky', 'chunky'],
+      ['bulky', 'bulky'],
+      ['sport', 'sport'],
+      ['aran', 'aran'],
+      ['lace', 'lace'],
+      ['sock', 'sock'],
+      ['DK', 'DK'],
+      ['jumbo', 'jumbo'],
+    ];
+    const lower = String(text).toLowerCase();
+    for (const [needle, label] of weights) {
+      if (lower.includes(needle.toLowerCase())) return label;
+    }
+    return '';
+  }
+
+  async function extractPatternInfo() {
+    if (!currentPdfDoc) return null;
+    let allText = '';
+    const pagesToScan = Math.min(3, currentPdfDoc.numPages);
+    for (let i = 1; i <= pagesToScan; i++) {
+      const page = await currentPdfDoc.getPage(i);
+      const content = await page.getTextContent();
+      allText += content.items.map(item => item.str).join(' ') + '\n';
+    }
+    return parsePatternInfo(allText);
+  }
+
+  function parsePatternInfo(text) {
+    const result = { yarn: '', needles: '', gauge: '' };
+    const t = text.replace(/\s+/g, ' ').trim();
+
+    // Yarn: look for "yarn:" / "yarn -" / "yarn —" then grab next 5-100 chars
+    const yarnMatch = t.match(/yarn\s*[:\-—]\s*(.{5,120}?)(?:\s+(?:needles?|gauge|hooks?|notions|tools|finished|abbreviations|notes|pattern\s+notes)|[.;]|$)/i);
+    if (yarnMatch) result.yarn = cleanField(yarnMatch[1]);
+
+    // Needles: "needles:" / "needle size:"
+    const needleMatch = t.match(/needles?(?:\s+sizes?)?\s*[:\-—]\s*(.{2,80}?)(?:\s+(?:yarn|gauge|hooks?|notions|finished|abbreviations|notes)|[.;]|$)/i);
+    if (needleMatch) {
+      result.needles = cleanField(needleMatch[1]);
+    } else {
+      // Crochet hook fallback
+      const hookMatch = t.match(/hooks?\s*[:\-—]\s*(.{2,80}?)(?:\s+(?:yarn|gauge|notions|finished|notes)|[.;]|$)/i);
+      if (hookMatch) {
+        result.needles = cleanField(hookMatch[1]);
+      } else {
+        // Last-resort: just find the first US or mm size mentioned
+        const sizeMatch = t.match(/(US\s*\d+(?:\.5)?(?:\s*\(\s*\d+(?:\.\d+)?\s*mm\s*\))?|\d+(?:\.\d+)?\s*mm)/i);
+        if (sizeMatch) result.needles = sizeMatch[1].trim();
+      }
+    }
+
+    // Gauge: "X sts and Y rows = N inches" (and variants)
+    const gaugeMatch = t.match(/(\d+)\s*sts?\s*(?:and|×|x|by|\s)\s*(\d+)\s*rows?\s*=\s*(\d+(?:\.\d+)?)\s*(inches?|in|cm|"|″)/i);
+    if (gaugeMatch) {
+      const unit = /cm/i.test(gaugeMatch[4]) ? 'cm' : '″';
+      result.gauge = `${gaugeMatch[1]} sts × ${gaugeMatch[2]} rows = ${gaugeMatch[3]}${unit}`;
+    } else {
+      // "X sts per inch" variant
+      const simpleGauge = t.match(/(\d+(?:\.\d+)?)\s*sts?\s*(?:per|\/)\s*(?:inch|in)/i);
+      if (simpleGauge) result.gauge = `${simpleGauge[1]} sts/inch`;
+    }
+
+    return result;
+  }
+
+  function cleanField(s) {
+    return s.replace(/\s+/g, ' ').replace(/[,;]+$/, '').trim();
+  }
+
+  function showDetectToast(msg) {
+    const el = document.getElementById('detect-toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2200);
+  }
+
+  async function autoDetectIfEmpty() {
+    const p = getCurrentProject();
+    if (!p) return;
+    // Only auto-fill empty fields so we never overwrite manual edits
+    const hasAnything = (p.yarn || p.needles || p.gauge);
+    if (hasAnything) return;
+    const info = await extractPatternInfo();
+    if (!info) return;
+    let filled = 0;
+    if (info.yarn && !p.yarn) { p.yarn = info.yarn; filled++; }
+    if (info.needles && !p.needles) { p.needles = info.needles; filled++; }
+    if (info.gauge && !p.gauge) { p.gauge = info.gauge; filled++; }
+    if (filled > 0) {
+      saveProjects(projects);
+      document.getElementById('info-yarn').value = p.yarn || '';
+      document.getElementById('info-needles').value = p.needles || '';
+      document.getElementById('info-gauge').value = p.gauge || '';
+      showDetectToast(`Detected ${filled} field${filled === 1 ? '' : 's'} from PDF`);
+    }
+  }
+
+  // Manual re-detect: confirms before overwriting
+  document.getElementById('detect-pattern-btn').addEventListener('click', async () => {
+    const p = getCurrentProject();
+    if (!p || !currentPdfDoc) return;
+    const hasAnything = (p.yarn || p.needles || p.gauge);
+    if (hasAnything) {
+      if (!confirm('Re-detect from PDF? This will overwrite the current Yarn / Needles / Gauge fields.')) return;
+    }
+    const btn = document.getElementById('detect-pattern-btn');
+    btn.disabled = true;
+    btn.textContent = 'Scanning...';
+    try {
+      const info = await extractPatternInfo();
+      if (info) {
+        p.yarn = info.yarn || p.yarn || '';
+        p.needles = info.needles || p.needles || '';
+        p.gauge = info.gauge || p.gauge || '';
+        saveProjects(projects);
+        document.getElementById('info-yarn').value = p.yarn;
+        document.getElementById('info-needles').value = p.needles;
+        document.getElementById('info-gauge').value = p.gauge;
+        const filled = [info.yarn, info.needles, info.gauge].filter(Boolean).length;
+        showDetectToast(filled ? `Detected ${filled} field${filled === 1 ? '' : 's'}` : 'Nothing detected — try editing by hand');
+      }
+    } catch (err) {
+      console.error(err);
+      showDetectToast('Detection failed');
+    }
+    btn.disabled = !p.hasPdf;
+    btn.textContent = 'Detect from PDF';
+  });
+
+  // Debounced save on each info field
+  ['yarn', 'needles', 'gauge'].forEach(field => {
+    const el = document.getElementById('info-' + field);
+    let timer = null;
+    el.addEventListener('input', () => {
+      if (!currentProjectId) return;
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        const p = getCurrentProject();
+        if (!p) return;
+        p[field] = el.value;
+        saveProjects(projects);
+      }, 400);
+    });
+  });
+
   // ------- Notes (debounced autosave) -------
   let notesTimer = null;
   const notesEl = document.getElementById('notes-textarea');
@@ -1652,7 +1947,7 @@
       format: 'stitchnest-backup',
       version: 1,
       exportedAt: Date.now(),
-      app: 'Stitchnest',
+      app: 'stitchnest',
       projects: []
     };
     for (const p of projects) {
@@ -1725,7 +2020,7 @@
       const text = await f.text();
       const data = JSON.parse(text);
       if (data.format !== 'stitchnest-backup' || !Array.isArray(data.projects)) {
-        toast('Not a valid Stitchnest backup');
+        toast('Not a valid stitchnest backup');
         return;
       }
       const incoming = data.projects;

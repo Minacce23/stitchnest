@@ -1,13 +1,13 @@
 {
-  "name": "Stitchnest — Knitting Companion",
-  "short_name": "Stitchnest",
+  "name": "stitchnest — knitting companion",
+  "short_name": "stitchnest",
   "description": "Pattern library, stitch and row counters, drawing on patterns, and action-row alerts for knitters.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#f7f1e8",
-  "theme_color": "#c4685a",
+  "background_color": "#F7F4D5",
+  "theme_color": "#0A3323",
   "icons": [
     {
       "src": "icon-192.png",
