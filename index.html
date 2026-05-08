@@ -190,8 +190,11 @@
     display: grid;
     grid-template-columns: 100px 1fr;
     gap: 10px;
-    align-items: center;
-    padding: 6px 0;
+    align-items: start;
+    padding: 8px 0;
+  }
+  .info-row .info-label {
+    padding-top: 8px;  /* aligns label with first line of input/textarea */
   }
   .info-row + .info-row {
     border-top: 1px solid var(--line);
@@ -212,6 +215,11 @@
     color: var(--ink);
     padding: 6px 4px;
     border-radius: 6px;
+    resize: none;
+    overflow: hidden;
+    line-height: 1.4;
+    min-height: 28px;
+    display: block;
   }
   .info-input:focus {
     outline: 2px solid var(--accent);
@@ -852,15 +860,15 @@
       </div>
       <div class="info-row">
         <div class="info-label">Yarn</div>
-        <input type="text" class="info-input" id="info-yarn" placeholder="e.g. Cascade 220 worsted" autocomplete="off" />
+        <textarea class="info-input" id="info-yarn" rows="1" placeholder="e.g. Cascade 220 worsted" autocomplete="off"></textarea>
       </div>
       <div class="info-row">
         <div class="info-label">Needles / Hook</div>
-        <input type="text" class="info-input" id="info-needles" placeholder="e.g. US 8 / 5mm" autocomplete="off" />
+        <textarea class="info-input" id="info-needles" rows="1" placeholder="e.g. US 8 / 5mm" autocomplete="off"></textarea>
       </div>
       <div class="info-row">
         <div class="info-label">Gauge</div>
-        <input type="text" class="info-input" id="info-gauge" placeholder='e.g. 18 sts × 24 rows = 4″' autocomplete="off" />
+        <textarea class="info-input" id="info-gauge" rows="1" placeholder='e.g. 18 sts × 24 rows = 4″' autocomplete="off"></textarea>
       </div>
       <div class="detect-toast" id="detect-toast"></div>
     </div>
@@ -1187,6 +1195,8 @@
     document.getElementById('info-gauge').value = p.gauge || '';
     document.getElementById('detect-pattern-btn').disabled = !p.hasPdf;
     document.getElementById('detect-toast').classList.remove('show');
+    // Resize textareas now that values are in
+    requestAnimationFrame(() => refreshAllInfoFieldHeights());
     renderActionRows();
     updateActionAlert();
 
@@ -1725,9 +1735,13 @@
     // Concise spec line for the home card. Shows needles + weight when present.
     const parts = [];
     if (p.needles) {
-      // Pull just the size out (e.g. "US 8" or "5mm") for compactness
-      const m = String(p.needles).match(/(US\s*\d+(?:\.5)?|\d+(?:\.\d+)?\s*mm)/i);
-      parts.push(m ? m[1] : String(p.needles).slice(0, 12));
+      const lines = String(p.needles).split('\n').filter(s => s.trim());
+      const first = lines[0] || '';
+      const m = first.match(/(US\s*\d+(?:\.5)?|\d+(?:\.\d+)?\s*mm)/i);
+      let needleStr = m ? m[1] : first.slice(0, 12);
+      // If multiple tools, mark with a + so user knows there's more
+      if (lines.length > 1) needleStr += ` +${lines.length - 1}`;
+      parts.push(needleStr);
     }
     if (p.yarn) {
       const w = detectWeight(p.yarn);
@@ -1765,43 +1779,79 @@
     for (let i = 1; i <= pagesToScan; i++) {
       const page = await currentPdfDoc.getPage(i);
       const content = await page.getTextContent();
-      allText += content.items.map(item => item.str).join(' ') + '\n';
+      // Preserve line breaks where PDF.js indicates one (item.hasEOL)
+      allText += content.items.map(item => item.str + (item.hasEOL ? '\n' : ' ')).join('') + '\n';
     }
     return parsePatternInfo(allText);
   }
 
   function parsePatternInfo(text) {
     const result = { yarn: '', needles: '', gauge: '' };
-    const t = text.replace(/\s+/g, ' ').trim();
+    const tFlat = text.replace(/\s+/g, ' ').trim();   // for inline regex fallback
+    const tNL = text;                                  // for section parsing (keep newlines)
 
-    // Yarn: look for "yarn:" / "yarn -" / "yarn —" then grab next 5-100 chars
-    const yarnMatch = t.match(/yarn\s*[:\-—]\s*(.{5,120}?)(?:\s+(?:needles?|gauge|hooks?|notions|tools|finished|abbreviations|notes|pattern\s+notes)|[.;]|$)/i);
-    if (yarnMatch) result.yarn = cleanField(yarnMatch[1]);
-
-    // Needles: "needles:" / "needle size:"
-    const needleMatch = t.match(/needles?(?:\s+sizes?)?\s*[:\-—]\s*(.{2,80}?)(?:\s+(?:yarn|gauge|hooks?|notions|finished|abbreviations|notes)|[.;]|$)/i);
-    if (needleMatch) {
-      result.needles = cleanField(needleMatch[1]);
-    } else {
-      // Crochet hook fallback
-      const hookMatch = t.match(/hooks?\s*[:\-—]\s*(.{2,80}?)(?:\s+(?:yarn|gauge|notions|finished|notes)|[.;]|$)/i);
-      if (hookMatch) {
-        result.needles = cleanField(hookMatch[1]);
+    // ----- Needles / Hook (multi-tool aware) -----
+    let needleItems = [];
+    const toolsSection = extractSectionAfter(tNL, /NEEDLES?\s*(?:&|AND|\+)?\s*(?:TOOLS?|HOOKS?)?/i);
+    if (toolsSection) {
+      const items = parseBulletItems(toolsSection);
+      needleItems = items.map(summarizeNeedle).filter(Boolean);
+    }
+    if (needleItems.length === 0) {
+      // Inline format: "Needles: US 8 (5mm)..."
+      const inlineMatch = tFlat.match(/needles?(?:\s+sizes?)?\s*[:\-—]\s*(.{2,150}?)(?:\s+(?:yarn|gauge|notions|finished|abbreviations|notes|pattern\s+notes)|$)/i);
+      if (inlineMatch) {
+        const summary = summarizeNeedle(inlineMatch[1]);
+        if (summary) needleItems.push(summary);
+        else needleItems.push(cleanField(inlineMatch[1]).slice(0, 80));
       } else {
-        // Last-resort: just find the first US or mm size mentioned
-        const sizeMatch = t.match(/(US\s*\d+(?:\.5)?(?:\s*\(\s*\d+(?:\.\d+)?\s*mm\s*\))?|\d+(?:\.\d+)?\s*mm)/i);
-        if (sizeMatch) result.needles = sizeMatch[1].trim();
+        // Crochet hook fallback
+        const hookMatch = tFlat.match(/hooks?\s*[:\-—]\s*(.{2,80}?)(?:\s+(?:yarn|gauge|notions|finished|notes)|$)/i);
+        if (hookMatch) {
+          const s = summarizeNeedle(hookMatch[1]);
+          if (s) needleItems.push(s);
+        } else {
+          const sizeMatch = tFlat.match(/(US\s*\d+(?:\.5)?(?:\s*\(\s*\d+(?:\.\d+)?\s*mm\s*\))?|\d+(?:\.\d+)?\s*mm)/i);
+          if (sizeMatch) needleItems.push(sizeMatch[1].trim());
+        }
       }
     }
+    // Dedupe: same size+tool shouldn't appear twice
+    needleItems = Array.from(new Set(needleItems));
+    result.needles = needleItems.join('\n');
 
-    // Gauge: "X sts and Y rows = N inches" (and variants)
-    const gaugeMatch = t.match(/(\d+)\s*sts?\s*(?:and|×|x|by|\s)\s*(\d+)\s*rows?\s*=\s*(\d+(?:\.\d+)?)\s*(inches?|in|cm|"|″)/i);
+    // ----- Yarn (multi-yarn aware) -----
+    let yarnItems = [];
+    const yarnSection = extractSectionAfter(tNL, /YARNS?\s*[:\-—]?/);
+    if (yarnSection) {
+      const items = parseBulletItems(yarnSection);
+      if (items.length > 1) {
+        // Bullet list — multiple yarns (main color / contrast color / etc.)
+        yarnItems = items.map(item => {
+          const first = item.split(/[.;]/)[0].trim();
+          return first.length > 100 ? first.slice(0, 100) + '...' : first;
+        }).filter(s => s.length > 3);
+      } else {
+        // Single-paragraph yarn — take first sentence
+        const first = yarnSection.split(/[.\n]/).map(s => s.trim()).find(s => s.length > 5);
+        if (first) yarnItems.push(first.length > 130 ? first.slice(0, 130) + '...' : first);
+      }
+    }
+    if (yarnItems.length === 0) {
+      const yarnMatch = tFlat.match(/yarn\s*[:\-—]\s*(.{5,130}?)(?:\s+(?:needles?|gauge|hooks?|notions|tools|finished|abbreviations|notes|pattern\s+notes)|[.;]|$)/i);
+      if (yarnMatch) yarnItems.push(cleanField(yarnMatch[1]));
+    }
+    yarnItems = Array.from(new Set(yarnItems));
+    result.yarn = yarnItems.join('\n');
+
+    // ----- Gauge (single value) -----
+    // Handles "24 sts and 24 rows = 4 inches" AND "24 st & 36 rows in 4"" variants.
+    const gaugeMatch = tFlat.match(/(\d+)\s*sts?\s*(?:and|×|x|by|&|\+)\s*(\d+)\s*rows?\s+(?:=|in)\s+(\d+(?:\.\d+)?)\s*(inches?|in\b|cm|"|″)/i);
     if (gaugeMatch) {
       const unit = /cm/i.test(gaugeMatch[4]) ? 'cm' : '″';
       result.gauge = `${gaugeMatch[1]} sts × ${gaugeMatch[2]} rows = ${gaugeMatch[3]}${unit}`;
     } else {
-      // "X sts per inch" variant
-      const simpleGauge = t.match(/(\d+(?:\.\d+)?)\s*sts?\s*(?:per|\/)\s*(?:inch|in)/i);
+      const simpleGauge = tFlat.match(/(\d+(?:\.\d+)?)\s*sts?\s*(?:per|\/)\s*(?:inch|in)/i);
       if (simpleGauge) result.gauge = `${simpleGauge[1]} sts/inch`;
     }
 
@@ -1810,6 +1860,53 @@
 
   function cleanField(s) {
     return s.replace(/\s+/g, ' ').replace(/[,;]+$/, '').trim();
+  }
+
+  // Extract the chunk of text that follows an ALL-CAPS section heading,
+  // up to the next ALL-CAPS heading or end of input. The heading must be
+  // anchored at start-of-line (with optional indent) so we don't false-match
+  // on inline word mentions like "...US 2 (2.75 mm) needles in stockinette...".
+  function extractSectionAfter(text, headerRegex) {
+    const headerStr = headerRegex.source;
+    const re = new RegExp('(?:^|\\n)\\s*' + headerStr + '[\\s:&]*([\\s\\S]{15,1800}?)(?=\\n\\s*[A-Z][A-Z\\s&\\-/]{3,}\\s*[:.\\n]|$)', 'i');
+    const m = text.match(re);
+    return m ? m[1].trim() : '';
+  }
+
+  // Split a bulleted list section into its items.
+  // Handles -, –, —, •, ‣, *, ●, ▪, ▶ plus zero-width / nbsp whitespace.
+  function parseBulletItems(section) {
+    const parts = section.split(/(?:^|\n)\s*[-–—•‣*●▪▶][\s​⁠ ]+/);
+    return parts
+      .map(s => s.replace(/\s+/g, ' ').trim())
+      .filter(s => s.length > 3);
+  }
+
+  // Summarize a verbose needle/hook description to "SIZE TOOL".
+  // e.g. "US 2 (2.75 mm; or whatever size meets gauge) circular needles with a 22-inch cable used for..."
+  //   -> "US 2 (2.75 mm) circular needles"
+  function summarizeNeedle(item) {
+    if (!item) return null;
+    const sizeMatch =
+         item.match(/(US\s*\d+(?:\.5)?)\s*\(?\s*(\d+(?:\.\d+)?\s*mm)\)?/i)
+      || item.match(/(\d+(?:\.\d+)?\s*-\s*\d+(?:\.\d+)?\s*mm)/i)
+      || item.match(/(\d+(?:\.\d+)?\s*mm)/i)
+      || item.match(/(US\s*\d+(?:\.5)?)/i);
+    if (!sizeMatch) return null;
+    let size;
+    if (sizeMatch[2]) {
+      size = `${sizeMatch[1].trim()} (${sizeMatch[2].trim()})`;
+    } else {
+      size = sizeMatch[1].trim();
+    }
+    const toolMatch = item.match(/\b(circulars?|DPNs?|double[\s\-]pointed|straights?|crochet\s+hooks?|hooks?|needles?)\b/i);
+    let tool = 'needles';
+    if (toolMatch) {
+      tool = toolMatch[1].toLowerCase()
+        .replace(/double[\s\-]pointed/, 'DPNs')
+        .replace(/^crochet\s+/, 'crochet ');
+    }
+    return `${size} ${tool}`;
   }
 
   function showDetectToast(msg) {
@@ -1836,6 +1933,7 @@
       document.getElementById('info-yarn').value = p.yarn || '';
       document.getElementById('info-needles').value = p.needles || '';
       document.getElementById('info-gauge').value = p.gauge || '';
+      refreshAllInfoFieldHeights();
       showDetectToast(`Detected ${filled} field${filled === 1 ? '' : 's'} from PDF`);
     }
   }
@@ -1861,6 +1959,7 @@
         document.getElementById('info-yarn').value = p.yarn;
         document.getElementById('info-needles').value = p.needles;
         document.getElementById('info-gauge').value = p.gauge;
+        refreshAllInfoFieldHeights();
         const filled = [info.yarn, info.needles, info.gauge].filter(Boolean).length;
         showDetectToast(filled ? `Detected ${filled} field${filled === 1 ? '' : 's'}` : 'Nothing detected — try editing by hand');
       }
@@ -1872,11 +1971,24 @@
     btn.textContent = 'Detect from PDF';
   });
 
-  // Debounced save on each info field
+  // Auto-grow textareas to fit their content (for multi-line yarn / needles)
+  function autoResizeInfoField(el) {
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  }
+  function refreshAllInfoFieldHeights() {
+    ['info-yarn', 'info-needles', 'info-gauge'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) autoResizeInfoField(el);
+    });
+  }
+
+  // Debounced save + autoresize on each info field
   ['yarn', 'needles', 'gauge'].forEach(field => {
     const el = document.getElementById('info-' + field);
     let timer = null;
     el.addEventListener('input', () => {
+      autoResizeInfoField(el);
       if (!currentProjectId) return;
       clearTimeout(timer);
       timer = setTimeout(() => {
@@ -1884,6 +1996,7 @@
         if (!p) return;
         p[field] = el.value;
         saveProjects(projects);
+        // Refresh home card preview line on next return to home
       }, 400);
     });
   });
