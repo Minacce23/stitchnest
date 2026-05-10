@@ -810,6 +810,137 @@
   .btn-danger { background: transparent; color: var(--accent); border: 1px solid var(--accent-soft); }
   .btn:active { transform: scale(0.98); }
 
+  /* Menu picker (small list opened from ⋯) */
+  .menu-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .menu-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    width: 100%;
+  }
+  .menu-item:active { background: var(--accent-soft); }
+  .menu-item .chev { color: var(--ink-soft); font-size: 16px; }
+
+  /* My people: list of saved people */
+  .people-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+  .person-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+  }
+  .person-card-main { flex: 1; min-width: 0; }
+  .person-card-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .person-card-stats {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .person-card-actions { display: flex; gap: 4px; }
+  .person-card-actions button {
+    background: transparent;
+    border: none;
+    color: var(--ink-soft);
+    font-size: 14px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .person-card-actions button:active { background: var(--accent-soft); color: var(--accent); }
+  .people-empty {
+    text-align: center;
+    padding: 24px 12px;
+    color: var(--ink-soft);
+    font-size: 13px;
+    font-style: italic;
+  }
+
+  /* Per-project: read-only person measurements display */
+  .person-display {
+    background: var(--sage-soft);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: var(--ink);
+    line-height: 1.5;
+  }
+  .person-display .dim { color: var(--ink-soft); }
+  .person-display.empty {
+    background: var(--surface-2);
+    color: var(--ink-soft);
+    font-style: italic;
+  }
+
+  /* Person edit modal: 2x2 measurement grid */
+  .measurement-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .measurement-grid .field { display: flex; flex-direction: column; }
+  .measurement-grid label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+  .measurement-grid input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    font-size: 16px;
+    font-family: inherit;
+    background: var(--surface-2);
+    margin: 0;
+  }
+  .measurement-grid input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+
+  /* Native select styled as info-input */
+  select.info-input {
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    padding-right: 22px;
+  }
+
   .toast {
     position: fixed;
     bottom: 90px;
@@ -871,6 +1002,24 @@
         <textarea class="info-input" id="info-gauge" rows="1" placeholder='e.g. 18 sts × 24 rows = 4″' autocomplete="off"></textarea>
       </div>
       <div class="detect-toast" id="detect-toast"></div>
+    </div>
+
+    <div class="pattern-info-section">
+      <div class="pattern-info-header">
+        <div class="pattern-info-title">Making for</div>
+        <button class="detect-btn" id="manage-people-btn">Manage people</button>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Person</div>
+        <select class="info-input" id="info-person" autocomplete="off">
+          <option value="">— No one selected —</option>
+        </select>
+      </div>
+      <div id="person-display" class="person-display empty">No person selected.</div>
+      <div class="info-row" style="margin-top:6px">
+        <div class="info-label">Size making</div>
+        <textarea class="info-input" id="info-size-making" rows="1" placeholder='e.g. Medium, or "Size 2 body, Size 1 sleeves"' autocomplete="off"></textarea>
+      </div>
     </div>
 
     <div class="pdf-section" id="pdf-section">
@@ -1042,6 +1191,85 @@
   </div>
 </div>
 
+<!-- Menu picker modal (small list opened from ⋯) -->
+<div class="modal-overlay" id="menu-modal">
+  <div class="modal">
+    <h3>Menu</h3>
+    <div class="menu-list">
+      <button class="menu-item" id="menu-people-btn">
+        <span>My people</span>
+        <span class="chev">›</span>
+      </button>
+      <button class="menu-item" id="menu-backup-btn">
+        <span>Backup &amp; restore</span>
+        <span class="chev">›</span>
+      </button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="menu-close" style="width:100%">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- My people modal (list of saved people) -->
+<div class="modal-overlay" id="people-modal">
+  <div class="modal">
+    <h3>My people</h3>
+    <p style="margin:0 0 14px;color:var(--ink-soft);font-size:13px;line-height:1.45">
+      Save measurements for the people you knit for. You can pick a person inside any project to see their measurements while you choose a size.
+    </p>
+    <button class="btn btn-primary" id="add-person-btn" style="width:100%;margin-bottom:14px">+ Add person</button>
+    <div class="people-list" id="people-list"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="people-close" style="width:100%">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- Person edit modal (add or edit one person) -->
+<div class="modal-overlay" id="person-edit-modal">
+  <div class="modal">
+    <h3 id="person-edit-title">Add person</h3>
+    <label for="pe-name">Name</label>
+    <input type="text" id="pe-name" placeholder="e.g. Mom, Sarah, Me" autocomplete="off" />
+
+    <label style="margin-bottom:8px">Units</label>
+    <div class="modal-tabs" style="margin-bottom:16px">
+      <button class="modal-tab active" data-unit="in" type="button">Inches</button>
+      <button class="modal-tab" data-unit="cm" type="button">Centimeters</button>
+    </div>
+
+    <div class="measurement-grid">
+      <div class="field">
+        <label for="pe-bust">Bust</label>
+        <input type="number" inputmode="decimal" step="0.25" id="pe-bust" placeholder="—" />
+      </div>
+      <div class="field">
+        <label for="pe-waist">Waist</label>
+        <input type="number" inputmode="decimal" step="0.25" id="pe-waist" placeholder="—" />
+      </div>
+      <div class="field">
+        <label for="pe-hips">Hips</label>
+        <input type="number" inputmode="decimal" step="0.25" id="pe-hips" placeholder="—" />
+      </div>
+      <div class="field">
+        <label for="pe-arm">Upper arm</label>
+        <input type="number" inputmode="decimal" step="0.25" id="pe-arm" placeholder="—" />
+      </div>
+    </div>
+
+    <div style="font-size:11px;color:var(--ink-soft);line-height:1.45;margin-bottom:14px">
+      Every measurement is optional. Leave any field blank if you don't have it.
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-danger" id="pe-delete" style="display:none">Delete</button>
+      <button class="btn btn-secondary" id="pe-cancel">Cancel</button>
+      <button class="btn btn-primary" id="pe-save">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- Hidden file input for adding pattern to existing project -->
 <input type="file" id="add-pdf-input" accept="application/pdf" style="display:none" />
 
@@ -1063,6 +1291,16 @@
   }
   function saveProjects(list) {
     localStorage.setItem(PROJECTS_KEY, JSON.stringify(list));
+  }
+
+  // People (global, shared across all projects)
+  const PEOPLE_KEY = 'stitch.people.v1';
+  function loadPeople() {
+    try { return JSON.parse(localStorage.getItem(PEOPLE_KEY) || '[]'); }
+    catch { return []; }
+  }
+  function savePeople(list) {
+    localStorage.setItem(PEOPLE_KEY, JSON.stringify(list));
   }
 
   let dbPromise;
@@ -1108,6 +1346,7 @@
 
   // ------- App state -------
   let projects = loadProjects();
+  let people = loadPeople();
   let currentProjectId = null;
   let currentPdfDoc = null;
   let currentPage = 1;
@@ -1195,6 +1434,10 @@
     document.getElementById('info-gauge').value = p.gauge || '';
     document.getElementById('detect-pattern-btn').disabled = !p.hasPdf;
     document.getElementById('detect-toast').classList.remove('show');
+    refreshPersonDropdown();
+    document.getElementById('info-person').value = p.personId || '';
+    document.getElementById('info-size-making').value = p.sizeMaking || '';
+    refreshPersonDisplay();
     // Resize textareas now that values are in
     requestAnimationFrame(() => refreshAllInfoFieldHeights());
     renderActionRows();
@@ -1822,7 +2065,11 @@
 
     // ----- Yarn (multi-yarn aware) -----
     let yarnItems = [];
-    const yarnSection = extractSectionAfter(tNL, /YARNS?\s*[:\-—]?/);
+    // Try YARN, MATERIALS, FIBER, FIBERS as section headers (in that priority order)
+    const yarnSection =
+         extractSectionAfter(tNL, /YARNS?\s*[:\-—]?/)
+      || extractSectionAfter(tNL, /MATERIALS?\s*[:\-—]?/)
+      || extractSectionAfter(tNL, /FIBE?RS?\s*[:\-—]?/);
     if (yarnSection) {
       const items = parseBulletItems(yarnSection);
       if (items.length > 1) {
@@ -1838,7 +2085,10 @@
       }
     }
     if (yarnItems.length === 0) {
-      const yarnMatch = tFlat.match(/yarn\s*[:\-—]\s*(.{5,130}?)(?:\s+(?:needles?|gauge|hooks?|notions|tools|finished|abbreviations|notes|pattern\s+notes)|[.;]|$)/i);
+      // Inline fallback: only look in the first 2000 chars (most patterns put yarn info up front)
+      // and require "yarn:" / "yarn -" with the colon/dash so we don't grab "yarn" inside body text.
+      const head = tFlat.slice(0, 2500);
+      const yarnMatch = head.match(/(?:^|\.\s|\s)yarn\s*[:\-—]\s*(.{5,130}?)(?:\s+(?:needles?|gauge|hooks?|notions|tools|materials|finished|abbreviations|notes|pattern\s+notes|tension)|[.;]|$)/i);
       if (yarnMatch) yarnItems.push(cleanField(yarnMatch[1]));
     }
     yarnItems = Array.from(new Set(yarnItems));
@@ -1863,12 +2113,18 @@
   }
 
   // Extract the chunk of text that follows an ALL-CAPS section heading,
-  // up to the next ALL-CAPS heading or end of input. The heading must be
-  // anchored at start-of-line (with optional indent) so we don't false-match
-  // on inline word mentions like "...US 2 (2.75 mm) needles in stockinette...".
+  // up to the next ALL-CAPS heading or end of input. The heading is matched
+  // case-insensitively by expanding letters to char classes, but the lookahead's
+  // [A-Z] stays strictly uppercase (we can't use /i without it falsely matching
+  // lowercase indented words like "technique" and ending the section early).
   function extractSectionAfter(text, headerRegex) {
-    const headerStr = headerRegex.source;
-    const re = new RegExp('(?:^|\\n)\\s*' + headerStr + '[\\s:&]*([\\s\\S]{15,1800}?)(?=\\n\\s*[A-Z][A-Z\\s&\\-/]{3,}\\s*[:.\\n]|$)', 'i');
+    // Convert uppercase letters in source to [Aa]-style char classes so we
+    // can match case-insensitively without using the /i flag.
+    const ciHeader = headerRegex.source.replace(/[A-Z]/g, c => `[${c}${c.toLowerCase()}]`);
+    // Section ends at: next ALL CAPS heading, blank line (paragraph break), or end of input.
+    // Without the blank-line option, patterns that use Title Case headings throughout (no ALL CAPS)
+    // can't find a terminator and the whole regex fails.
+    const re = new RegExp('(?:^|\\n)\\s*' + ciHeader + '[\\s:&]*([\\s\\S]{15,1800}?)(?=\\n\\s*[A-Z][A-Z\\s&\\-/]{3,}\\s*[:.\\n]|\\n\\s*\\n|$)');
     const m = text.match(re);
     return m ? m[1].trim() : '';
   }
@@ -1977,7 +2233,7 @@
     el.style.height = el.scrollHeight + 'px';
   }
   function refreshAllInfoFieldHeights() {
-    ['info-yarn', 'info-needles', 'info-gauge'].forEach(id => {
+    ['info-yarn', 'info-needles', 'info-gauge', 'info-size-making'].forEach(id => {
       const el = document.getElementById(id);
       if (el) autoResizeInfoField(el);
     });
@@ -2032,11 +2288,276 @@
     toast('Project deleted');
   });
 
-  // ------- Backup & restore -------
+  // ------- Menu picker (small list opened from ⋯) -------
+  const menuModal = document.getElementById('menu-modal');
+  const peopleModal = document.getElementById('people-modal');
+  const personEditModal = document.getElementById('person-edit-modal');
   const backupModal = document.getElementById('backup-modal');
-  document.getElementById('menu-btn').addEventListener('click', () => backupModal.classList.add('open'));
+
+  document.getElementById('menu-btn').addEventListener('click', () => menuModal.classList.add('open'));
+  document.getElementById('menu-close').addEventListener('click', () => menuModal.classList.remove('open'));
+  menuModal.addEventListener('click', (e) => { if (e.target === menuModal) menuModal.classList.remove('open'); });
+
+  document.getElementById('menu-people-btn').addEventListener('click', () => {
+    menuModal.classList.remove('open');
+    openPeopleModal();
+  });
+  document.getElementById('menu-backup-btn').addEventListener('click', () => {
+    menuModal.classList.remove('open');
+    backupModal.classList.add('open');
+  });
+
+  // ------- Backup & restore -------
   document.getElementById('backup-close').addEventListener('click', () => backupModal.classList.remove('open'));
   backupModal.addEventListener('click', (e) => { if (e.target === backupModal) backupModal.classList.remove('open'); });
+
+  // ------- People: helpers, render, dropdown, display -------
+  function findPerson(id) {
+    return people.find(p => p.id === id) || null;
+  }
+  function unitSuffix(unit) { return unit === 'cm' ? ' cm' : '"'; }
+  function formatMeasurement(val, unit) {
+    if (val === null || val === undefined || val === '') return null;
+    const n = Number(val);
+    if (!isFinite(n)) return null;
+    const display = (n === Math.floor(n)) ? n.toString() : String(n);
+    return display + unitSuffix(unit);
+  }
+  function personSummary(person) {
+    if (!person) return '';
+    const parts = [];
+    const add = (label, key) => {
+      const v = formatMeasurement(person[key], person.unit);
+      if (v) parts.push(label + ' ' + v);
+    };
+    add('Bust', 'bust');
+    add('Waist', 'waist');
+    add('Hips', 'hips');
+    add('Upper arm', 'upperArm');
+    return parts.length ? parts.join(' · ') : 'No measurements yet';
+  }
+
+  function refreshPersonDropdown() {
+    const sel = document.getElementById('info-person');
+    if (!sel) return;
+    const current = sel.value;
+    sel.innerHTML = '';
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = '— No one selected —';
+    sel.appendChild(placeholder);
+    for (const p of people) {
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = p.name;
+      sel.appendChild(opt);
+    }
+    if (current && people.some(p => p.id === current)) sel.value = current;
+  }
+
+  function refreshPersonDisplay() {
+    const project = getCurrentProject();
+    const display = document.getElementById('person-display');
+    if (!display) return;
+    display.textContent = '';
+    if (!project || !project.personId) {
+      display.classList.add('empty');
+      display.textContent = people.length === 0
+        ? 'No people saved yet. Tap "Manage people" to add one.'
+        : 'No person selected.';
+      return;
+    }
+    const person = findPerson(project.personId);
+    if (!person) {
+      display.classList.add('empty');
+      display.textContent = 'Selected person was removed. Pick another.';
+      return;
+    }
+    display.classList.remove('empty');
+    const summary = personSummary(person);
+    if (summary === 'No measurements yet') {
+      const dim = document.createElement('span');
+      dim.className = 'dim';
+      dim.textContent = 'No measurements saved for ' + person.name + '.';
+      display.appendChild(dim);
+    } else {
+      const strong = document.createElement('strong');
+      strong.textContent = person.name;
+      display.appendChild(strong);
+      const sep = document.createElement('span');
+      sep.className = 'dim';
+      sep.textContent = '  ·  ';
+      display.appendChild(sep);
+      const txt = document.createTextNode(summary);
+      display.appendChild(txt);
+    }
+  }
+
+  // Person dropdown change → save personId on the project
+  document.getElementById('info-person').addEventListener('change', (e) => {
+    if (!currentProjectId) return;
+    const p = projects.find(x => x.id === currentProjectId);
+    if (!p) return;
+    p.personId = e.target.value || null;
+    saveProjects(projects);
+    refreshPersonDisplay();
+  });
+
+  // Size making (debounced autosave + autoresize)
+  const sizeMakingEl = document.getElementById('info-size-making');
+  let sizeMakingTimer = null;
+  sizeMakingEl.addEventListener('input', () => {
+    autoResizeInfoField(sizeMakingEl);
+    if (!currentProjectId) return;
+    clearTimeout(sizeMakingTimer);
+    sizeMakingTimer = setTimeout(() => {
+      const p = getCurrentProject();
+      if (!p) return;
+      p.sizeMaking = sizeMakingEl.value;
+      saveProjects(projects);
+    }, 400);
+  });
+
+  // "Manage people" shortcut from the project page
+  document.getElementById('manage-people-btn').addEventListener('click', () => {
+    openPeopleModal();
+  });
+
+  // ------- People modal (list / add / edit / delete) -------
+  function openPeopleModal() {
+    renderPeopleList();
+    peopleModal.classList.add('open');
+  }
+  document.getElementById('people-close').addEventListener('click', () => peopleModal.classList.remove('open'));
+  peopleModal.addEventListener('click', (e) => { if (e.target === peopleModal) peopleModal.classList.remove('open'); });
+  document.getElementById('add-person-btn').addEventListener('click', () => openPersonEditModal(null));
+
+  function renderPeopleList() {
+    const list = document.getElementById('people-list');
+    list.innerHTML = '';
+    if (people.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'people-empty';
+      empty.textContent = 'No people yet. Tap "+ Add person" to save your first set of measurements.';
+      list.appendChild(empty);
+      return;
+    }
+    for (const person of people) {
+      const card = document.createElement('div');
+      card.className = 'person-card';
+
+      const main = document.createElement('div');
+      main.className = 'person-card-main';
+      const name = document.createElement('div');
+      name.className = 'person-card-name';
+      name.textContent = person.name;
+      main.appendChild(name);
+      const stats = document.createElement('div');
+      stats.className = 'person-card-stats';
+      stats.textContent = personSummary(person);
+      main.appendChild(stats);
+      card.appendChild(main);
+
+      const actions = document.createElement('div');
+      actions.className = 'person-card-actions';
+      const editBtn = document.createElement('button');
+      editBtn.type = 'button';
+      editBtn.textContent = 'Edit';
+      editBtn.addEventListener('click', () => openPersonEditModal(person.id));
+      actions.appendChild(editBtn);
+      card.appendChild(actions);
+
+      list.appendChild(card);
+    }
+  }
+
+  // ------- Person edit modal (form for one person) -------
+  let editingPersonId = null;
+  let editUnit = 'in';
+
+  function setEditUnit(unit) {
+    editUnit = unit;
+    document.querySelectorAll('#person-edit-modal .modal-tab').forEach(b => {
+      b.classList.toggle('active', b.dataset.unit === unit);
+    });
+  }
+  document.querySelectorAll('#person-edit-modal .modal-tab').forEach(b => {
+    b.addEventListener('click', () => setEditUnit(b.dataset.unit));
+  });
+
+  function openPersonEditModal(personId) {
+    editingPersonId = personId;
+    const isEdit = !!personId;
+    document.getElementById('person-edit-title').textContent = isEdit ? 'Edit person' : 'Add person';
+    document.getElementById('pe-delete').style.display = isEdit ? '' : 'none';
+    const person = isEdit ? findPerson(personId) : null;
+    document.getElementById('pe-name').value = person?.name || '';
+    document.getElementById('pe-bust').value = person?.bust ?? '';
+    document.getElementById('pe-waist').value = person?.waist ?? '';
+    document.getElementById('pe-hips').value = person?.hips ?? '';
+    document.getElementById('pe-arm').value = person?.upperArm ?? '';
+    setEditUnit(person?.unit || 'in');
+    personEditModal.classList.add('open');
+    if (!isEdit) setTimeout(() => document.getElementById('pe-name').focus(), 100);
+  }
+
+  document.getElementById('pe-cancel').addEventListener('click', () => personEditModal.classList.remove('open'));
+  personEditModal.addEventListener('click', (e) => { if (e.target === personEditModal) personEditModal.classList.remove('open'); });
+
+  document.getElementById('pe-save').addEventListener('click', () => {
+    const name = document.getElementById('pe-name').value.trim();
+    if (!name) { toast('Give the person a name'); return; }
+    const numOrNull = (id) => {
+      const v = document.getElementById(id).value.trim();
+      if (v === '') return null;
+      const n = Number(v);
+      return isFinite(n) ? n : null;
+    };
+    const data = {
+      name,
+      unit: editUnit,
+      bust: numOrNull('pe-bust'),
+      waist: numOrNull('pe-waist'),
+      hips: numOrNull('pe-hips'),
+      upperArm: numOrNull('pe-arm'),
+    };
+    if (editingPersonId) {
+      const idx = people.findIndex(p => p.id === editingPersonId);
+      if (idx >= 0) people[idx] = { ...people[idx], ...data };
+    } else {
+      const id = 'pers_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+      people.unshift({ id, createdAt: Date.now(), ...data });
+    }
+    savePeople(people);
+    personEditModal.classList.remove('open');
+    renderPeopleList();
+    refreshPersonDropdown();
+    // Restore selection on project page if currently open
+    if (currentProjectId) {
+      const p = getCurrentProject();
+      if (p) document.getElementById('info-person').value = p.personId || '';
+    }
+    refreshPersonDisplay();
+    toast(editingPersonId ? 'Saved' : 'Person added');
+  });
+
+  document.getElementById('pe-delete').addEventListener('click', () => {
+    if (!editingPersonId) return;
+    const person = findPerson(editingPersonId);
+    if (!person) return;
+    if (!confirm('Delete "' + person.name + '"? Projects linked to them will lose the link, but no project data is removed.')) return;
+    people = people.filter(p => p.id !== editingPersonId);
+    savePeople(people);
+    personEditModal.classList.remove('open');
+    renderPeopleList();
+    refreshPersonDropdown();
+    if (currentProjectId) {
+      const p = getCurrentProject();
+      if (p) document.getElementById('info-person').value = p.personId || '';
+    }
+    refreshPersonDisplay();
+    toast('Person deleted');
+  });
 
   function blobToBase64(blob) {
     return new Promise((resolve, reject) => {
@@ -2061,7 +2582,8 @@
       version: 1,
       exportedAt: Date.now(),
       app: 'stitchnest',
-      projects: []
+      projects: [],
+      people: JSON.parse(JSON.stringify(people || []))
     };
     for (const p of projects) {
       const proj = JSON.parse(JSON.stringify(p)); // deep clone
@@ -2137,15 +2659,29 @@
         return;
       }
       const incoming = data.projects;
+      const incomingPeople = Array.isArray(data.people) ? data.people : [];
       const existingIds = new Set(projects.map(p => p.id));
       const replaceCount = incoming.filter(p => existingIds.has(p.id)).length;
       const addCount = incoming.length - replaceCount;
-      const ok = confirm(
-        `This backup has ${incoming.length} project${incoming.length === 1 ? '' : 's'}.\n\n` +
-        `${addCount} new, ${replaceCount} will replace existing matching project${replaceCount === 1 ? '' : 's'}.\n\n` +
-        `Continue?`
-      );
+      const existingPeopleIds = new Set(people.map(p => p.id));
+      const peopleReplaceCount = incomingPeople.filter(p => existingPeopleIds.has(p.id)).length;
+      const peopleAddCount = incomingPeople.length - peopleReplaceCount;
+      let msg = `This backup has ${incoming.length} project${incoming.length === 1 ? '' : 's'}.\n\n` +
+        `${addCount} new, ${replaceCount} will replace existing matching project${replaceCount === 1 ? '' : 's'}.`;
+      if (incomingPeople.length) {
+        msg += `\n\nIt also has ${incomingPeople.length} saved ${incomingPeople.length === 1 ? 'person' : 'people'} (${peopleAddCount} new, ${peopleReplaceCount} replace).`;
+      }
+      msg += `\n\nContinue?`;
+      const ok = confirm(msg);
       if (!ok) { e.target.value = ''; return; }
+
+      // Merge people first so newly imported projects can resolve their personId immediately
+      for (const inP of incomingPeople) {
+        const idx = people.findIndex(p => p.id === inP.id);
+        if (idx >= 0) people[idx] = inP;
+        else people.push(inP);
+      }
+      savePeople(people);
 
       for (const inProj of incoming) {
         // Restore PDF blob if present
