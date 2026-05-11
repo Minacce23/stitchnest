@@ -30,6 +30,28 @@
     --sage: #839958;           /* storysprout moss — secondary accent */
     --sage-soft: #EDF1E0;      /* light moss tint */
     --shadow: 0 1px 3px rgba(10, 51, 35, 0.07), 0 4px 16px rgba(10, 51, 35, 0.06);
+    /* Toast popover (the small notification at the bottom). High contrast
+       in both themes, so it inverts when the app flips to dark. */
+    --toast-bg: #0A3323;
+    --toast-fg: #F7F4D5;
+  }
+
+  /* Dark theme. Mirrors storysprout's palette: cream becomes deep forest,
+     deep forest text becomes cream, accents stay the same. */
+  body.theme-dark {
+    --bg: #0A3323;
+    --surface: #143E2D;
+    --surface-2: #1A4D38;
+    --ink: #F7F4D5;
+    --ink-soft: #9AB1A0;
+    --line: #265240;
+    --accent: #D3968C;
+    --accent-soft: #3A2A28;
+    --sage: #A8BC72;
+    --sage-soft: #233628;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.25);
+    --toast-bg: #F7F4D5;
+    --toast-fg: #0A3323;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body {
@@ -314,7 +336,7 @@
   .pdf-nav button:disabled { opacity: 0.4; }
   .pdf-page-info { color: var(--ink-soft); font-variant-numeric: tabular-nums; }
   .pdf-canvas-wrap {
-    background: #E8E4C5;
+    background: var(--line);
     text-align: center;
     padding: 12px;
     overflow: auto;
@@ -519,7 +541,7 @@
   .action-banner.upcoming {
     background: var(--sage-soft);
     border-color: var(--sage);
-    color: #4A5C3A;
+    color: var(--sage);
     animation: none;
   }
   @keyframes pulse {
@@ -1015,6 +1037,33 @@
   .settings-item-title { font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
   .settings-item-desc { font-size: 13px; color: var(--ink-soft); line-height: 1.4; }
 
+  /* Segmented button group inside a settings-item (used by the theme picker) */
+  .settings-item-buttons {
+    display: flex;
+    gap: 4px;
+    margin-top: 10px;
+    background: var(--surface-2);
+    padding: 4px;
+    border-radius: 10px;
+  }
+  .settings-item-buttons button {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    background: transparent;
+    border-radius: 7px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+  .settings-item-buttons button.active {
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
   /* iOS-style toggle switch */
   .toggle {
     position: relative;
@@ -1110,7 +1159,7 @@
     position: relative;
     display: block;
     margin: 0 auto 10px;
-    background: white;
+    background: var(--surface);
     box-shadow: 0 1px 3px rgba(0,0,0,0.12);
     line-height: 0;
   }
@@ -1157,8 +1206,8 @@
     bottom: 90px;
     left: 50%;
     transform: translateX(-50%);
-    background: var(--ink);
-    color: white;
+    background: var(--toast-bg);
+    color: var(--toast-fg);
     padding: 10px 18px;
     border-radius: 100px;
     font-size: 14px;
@@ -1475,6 +1524,17 @@
         </label>
       </div>
       <div class="settings-item">
+        <div class="settings-item-main" style="width:100%">
+          <div class="settings-item-title">Theme</div>
+          <div class="settings-item-desc">Choose how stitchnest looks. "System" follows your phone's light / dark setting.</div>
+          <div class="settings-item-buttons" id="theme-picker">
+            <button type="button" data-theme="auto">System</button>
+            <button type="button" data-theme="light">Light</button>
+            <button type="button" data-theme="dark">Dark</button>
+          </div>
+        </div>
+      </div>
+      <div class="settings-item">
         <div class="settings-item-main">
           <div class="settings-item-title">Continuous scroll PDFs</div>
           <div class="settings-item-desc">Scroll through every page of the pattern instead of tapping next / previous. Drawing, pinch zoom, and saved strokes still work on each page.</div>
@@ -1589,12 +1649,14 @@
   function loadSettings() {
     try {
       const stored = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+      const theme = ['auto', 'light', 'dark'].includes(stored.theme) ? stored.theme : 'auto';
       return {
         largerText: !!stored.largerText,
         scrollMode: !!stored.scrollMode,
+        theme,
       };
     } catch {
-      return { largerText: false, scrollMode: false };
+      return { largerText: false, scrollMode: false, theme: 'auto' };
     }
   }
   function saveSettings(s) {
@@ -2852,15 +2914,36 @@
   });
 
   // ------- Settings modal -------
+  // Resolves 'auto' to the actual effective light/dark based on system preference
+  function effectiveTheme() {
+    const t = settings.theme;
+    if (t === 'light' || t === 'dark') return t;
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+      ? 'dark'
+      : 'light';
+  }
+
+  function applyTheme() {
+    document.body.classList.toggle('theme-dark', effectiveTheme() === 'dark');
+  }
+
   function applySettings() {
     document.body.classList.toggle('access-large', !!settings.largerText);
     document.body.classList.toggle('scroll-mode', !!settings.scrollMode);
+    applyTheme();
+  }
+
+  function syncThemePickerUI() {
+    document.querySelectorAll('#theme-picker button').forEach(b => {
+      b.classList.toggle('active', b.dataset.theme === settings.theme);
+    });
   }
 
   function openSettingsModal() {
-    // Sync each toggle with the saved value every time we open
+    // Sync each control with the saved value every time we open
     document.getElementById('set-larger-text').checked = !!settings.largerText;
     document.getElementById('set-scroll-mode').checked = !!settings.scrollMode;
+    syncThemePickerUI();
     settingsModal.classList.add('open');
   }
   document.getElementById('settings-close').addEventListener('click', () => settingsModal.classList.remove('open'));
@@ -2884,7 +2967,29 @@
     toast(settings.scrollMode ? 'Continuous scroll on' : 'Continuous scroll off');
   });
 
-  // Apply saved settings on first paint so the user never sees a default-sized flash
+  // Theme picker buttons (System / Light / Dark)
+  document.querySelectorAll('#theme-picker button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const choice = btn.dataset.theme;
+      if (!['auto', 'light', 'dark'].includes(choice)) return;
+      settings.theme = choice;
+      saveSettings(settings);
+      syncThemePickerUI();
+      applyTheme();
+      const labels = { auto: 'System theme', light: 'Light theme', dark: 'Dark theme' };
+      toast(labels[choice]);
+    });
+  });
+
+  // React to the system flipping between light and dark while we're set to "auto"
+  if (window.matchMedia) {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const mqHandler = () => { if (settings.theme === 'auto') applyTheme(); };
+    if (mq.addEventListener) mq.addEventListener('change', mqHandler);
+    else if (mq.addListener) mq.addListener(mqHandler); // older Safari
+  }
+
+  // Apply saved settings on first paint so the user never sees a flash of default styling
   applySettings();
 
   // ------- Backup & restore -------
