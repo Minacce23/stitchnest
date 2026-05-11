@@ -941,6 +941,62 @@
     padding-right: 22px;
   }
 
+  /* "Currently working on" pill (top of project) */
+  .working-on-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--sage-soft);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-bottom: 16px;
+  }
+  .working-on-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--sage);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .working-on-input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--ink);
+    padding: 4px 0;
+    outline: none;
+  }
+  .working-on-input::placeholder { color: var(--ink-soft); opacity: 0.7; }
+
+  /* Stitch markers (reuses .action-section / .action-item card pattern) */
+  .marker-label-pill {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-weight: 700;
+    font-size: 12px;
+    min-width: 44px;
+    text-align: center;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .marker-desc {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--ink);
+  }
+  .marker-desc.empty { color: var(--ink-soft); font-style: italic; }
+
   .toast {
     position: fixed;
     bottom: 90px;
@@ -982,6 +1038,11 @@
     <div class="detail-header">
       <h1 class="detail-title" id="detail-title"></h1>
       <div class="detail-sub" id="detail-sub"></div>
+    </div>
+
+    <div class="working-on-pill">
+      <span class="working-on-label">Where I'm at</span>
+      <input type="text" id="info-working-on" class="working-on-input" placeholder='e.g. "Right sleeve, row 24"' autocomplete="off" />
     </div>
 
     <div class="pattern-info-section">
@@ -1095,6 +1156,14 @@
       <div class="action-list" id="action-list"></div>
     </div>
 
+    <div class="action-section">
+      <div class="action-section-header">
+        <div class="action-section-title">Stitch markers</div>
+        <button class="add-action-btn" id="add-marker-btn">+ Add</button>
+      </div>
+      <div class="action-list" id="marker-list"></div>
+    </div>
+
     <div class="notes-section">
       <div class="notes-header">
         <div class="notes-label">Notes</div>
@@ -1165,6 +1234,22 @@
     <div class="modal-actions">
       <button class="btn btn-secondary" id="ar-cancel">Cancel</button>
       <button class="btn btn-primary" id="ar-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Stitch marker add / edit modal -->
+<div class="modal-overlay" id="marker-modal">
+  <div class="modal">
+    <h3 id="marker-modal-title">Add stitch marker</h3>
+    <label for="mk-label">Short label</label>
+    <input type="text" id="mk-label" placeholder="e.g. BOR, HOR, M1" autocomplete="off" maxlength="8" />
+    <label for="mk-desc">What this marker looks like</label>
+    <input type="text" id="mk-desc" placeholder="e.g. Blue heart charm, gold safety pin" autocomplete="off" />
+    <div class="modal-actions">
+      <button class="btn btn-danger" id="mk-delete" style="display:none">Delete</button>
+      <button class="btn btn-secondary" id="mk-cancel">Cancel</button>
+      <button class="btn btn-primary" id="mk-save">Save</button>
     </div>
   </div>
 </div>
@@ -1438,6 +1523,8 @@
     document.getElementById('info-person').value = p.personId || '';
     document.getElementById('info-size-making').value = p.sizeMaking || '';
     refreshPersonDisplay();
+    document.getElementById('info-working-on').value = p.workingOn || '';
+    renderMarkers();
     // Resize textareas now that values are in
     requestAnimationFrame(() => refreshAllInfoFieldHeights());
     renderActionRows();
@@ -1464,7 +1551,9 @@
     }
     const arrayBuf = await blob.arrayBuffer();
     currentPdfDoc = await pdfjsLib.getDocument({ data: arrayBuf }).promise;
-    currentPage = 1;
+    // Restore the last page viewed for this project, clamped to a valid range.
+    const savedPage = projects.find(x => x.id === currentProjectId)?.currentPage;
+    currentPage = Math.min(Math.max(1, savedPage || 1), currentPdfDoc.numPages);
     document.getElementById('pdf-empty').classList.add('hidden');
     document.getElementById('pdf-loaded').classList.remove('hidden');
     await renderPage();
@@ -1497,10 +1586,10 @@
   }
 
   document.getElementById('pdf-prev').addEventListener('click', () => {
-    if (currentPage > 1) { currentPage--; renderPage(); }
+    if (currentPage > 1) { currentPage--; renderPage(); saveCurrentPage(); }
   });
   document.getElementById('pdf-next').addEventListener('click', () => {
-    if (currentPdfDoc && currentPage < currentPdfDoc.numPages) { currentPage++; renderPage(); }
+    if (currentPdfDoc && currentPage < currentPdfDoc.numPages) { currentPage++; renderPage(); saveCurrentPage(); }
   });
   document.getElementById('pdf-zoom-in').addEventListener('click', () => {
     currentScale = Math.min(3, currentScale + 0.25); renderPage();
@@ -2710,6 +2799,150 @@
       toast('Could not read that file');
     }
     e.target.value = '';
+  });
+
+  // ------- PDF page memory -------
+  function saveCurrentPage() {
+    const p = getCurrentProject();
+    if (!p) return;
+    p.currentPage = currentPage;
+    saveProjects(projects);
+  }
+
+  // ------- Working on (debounced autosave) -------
+  const workingOnEl = document.getElementById('info-working-on');
+  let workingOnTimer = null;
+  workingOnEl.addEventListener('input', () => {
+    if (!currentProjectId) return;
+    clearTimeout(workingOnTimer);
+    workingOnTimer = setTimeout(() => {
+      const p = getCurrentProject();
+      if (!p) return;
+      p.workingOn = workingOnEl.value;
+      saveProjects(projects);
+    }, 400);
+  });
+
+  // ------- Stitch markers -------
+  const markerModal = document.getElementById('marker-modal');
+  let editingMarkerId = null;
+
+  function getMarkers() {
+    const p = getCurrentProject();
+    if (!p) return [];
+    if (!Array.isArray(p.markers)) p.markers = [];
+    return p.markers;
+  }
+
+  function renderMarkers() {
+    const list = document.getElementById('marker-list');
+    list.innerHTML = '';
+    const markers = getMarkers();
+    if (markers.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'action-empty';
+      empty.textContent = 'No markers yet. Tap "+ Add" to label one.';
+      list.appendChild(empty);
+      return;
+    }
+    for (const m of markers) {
+      const item = document.createElement('div');
+      item.className = 'action-item';
+
+      const pill = document.createElement('span');
+      pill.className = 'marker-label-pill';
+      pill.textContent = m.label;
+      item.appendChild(pill);
+
+      const desc = document.createElement('span');
+      desc.className = 'marker-desc';
+      if (m.description && m.description.trim()) {
+        desc.textContent = m.description;
+      } else {
+        desc.classList.add('empty');
+        desc.textContent = 'no description';
+      }
+      item.appendChild(desc);
+
+      const del = document.createElement('button');
+      del.className = 'action-delete';
+      del.type = 'button';
+      del.textContent = '×';
+      del.title = 'Delete marker';
+      del.addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteMarker(m.id);
+      });
+      item.appendChild(del);
+
+      // Tap the row (outside the delete button) to edit
+      item.addEventListener('click', () => openMarkerModal(m.id));
+
+      list.appendChild(item);
+    }
+  }
+
+  function openMarkerModal(markerId) {
+    editingMarkerId = markerId;
+    const isEdit = !!markerId;
+    document.getElementById('marker-modal-title').textContent = isEdit ? 'Edit stitch marker' : 'Add stitch marker';
+    document.getElementById('mk-delete').style.display = isEdit ? '' : 'none';
+    const m = isEdit ? getMarkers().find(x => x.id === markerId) : null;
+    document.getElementById('mk-label').value = m?.label || '';
+    document.getElementById('mk-desc').value = m?.description || '';
+    markerModal.classList.add('open');
+    if (!isEdit) setTimeout(() => document.getElementById('mk-label').focus(), 100);
+  }
+  function closeMarkerModal() {
+    markerModal.classList.remove('open');
+    editingMarkerId = null;
+  }
+  function deleteMarker(id) {
+    const p = getCurrentProject();
+    if (!p || !Array.isArray(p.markers)) return;
+    const m = p.markers.find(x => x.id === id);
+    if (!m) return;
+    if (!confirm('Delete marker "' + m.label + '"?')) return;
+    p.markers = p.markers.filter(x => x.id !== id);
+    saveProjects(projects);
+    renderMarkers();
+  }
+
+  document.getElementById('add-marker-btn').addEventListener('click', () => openMarkerModal(null));
+  document.getElementById('mk-cancel').addEventListener('click', closeMarkerModal);
+  markerModal.addEventListener('click', (e) => { if (e.target === markerModal) closeMarkerModal(); });
+
+  document.getElementById('mk-save').addEventListener('click', () => {
+    const p = getCurrentProject();
+    if (!p) return;
+    const label = document.getElementById('mk-label').value.trim();
+    const description = document.getElementById('mk-desc').value.trim();
+    if (!label) { toast('Give the marker a short label'); return; }
+    if (!Array.isArray(p.markers)) p.markers = [];
+    if (editingMarkerId) {
+      const idx = p.markers.findIndex(x => x.id === editingMarkerId);
+      if (idx >= 0) p.markers[idx] = { ...p.markers[idx], label, description };
+    } else {
+      const id = 'mk_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+      p.markers.push({ id, label, description });
+    }
+    saveProjects(projects);
+    renderMarkers();
+    closeMarkerModal();
+  });
+
+  document.getElementById('mk-delete').addEventListener('click', () => {
+    if (!editingMarkerId) return;
+    const id = editingMarkerId;
+    const p = getCurrentProject();
+    if (!p || !Array.isArray(p.markers)) { closeMarkerModal(); return; }
+    const m = p.markers.find(x => x.id === id);
+    if (!m) { closeMarkerModal(); return; }
+    if (!confirm('Delete marker "' + m.label + '"?')) return;
+    p.markers = p.markers.filter(x => x.id !== id);
+    saveProjects(projects);
+    renderMarkers();
+    closeMarkerModal();
   });
 
   // ------- Init -------
