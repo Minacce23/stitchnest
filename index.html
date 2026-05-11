@@ -999,6 +999,115 @@
     padding-right: 22px;
   }
 
+  /* My swatch section */
+  .swatch-count-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .swatch-num {
+    flex: 0 0 80px;
+    border: 1px solid var(--line);
+    background: var(--surface-2);
+    border-radius: 8px;
+    padding: 6px 8px;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--ink);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .swatch-num:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: -1px;
+  }
+  .swatch-per {
+    color: var(--ink-soft);
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  .swatch-area-select {
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    border: 1px solid var(--line);
+    background: var(--surface-2);
+    border-radius: 8px;
+    padding: 6px 22px 6px 10px;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--ink);
+    min-width: 75px;
+  }
+  .swatch-area-mirror {
+    color: var(--ink-soft);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Comparison panel that appears once both gauges are known */
+  .swatch-compare {
+    margin-top: 12px;
+    padding: 12px 14px;
+    background: var(--surface-2);
+    border-radius: 10px;
+    border: 1px solid var(--line);
+  }
+  .swatch-compare:empty {
+    display: none;
+  }
+  .swatch-compare-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 4px 0;
+    gap: 12px;
+  }
+  .swatch-compare-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--ink-soft);
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .swatch-compare-value {
+    font-size: 13px;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+  .swatch-compare-note {
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  .swatch-compare-note.match {
+    background: var(--sage-soft);
+    color: var(--sage);
+    border: 1px solid var(--sage);
+  }
+  .swatch-compare-note.adjust {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+  }
+  .swatch-compare-note.note {
+    background: transparent;
+    color: var(--ink-soft);
+    border: 1px dashed var(--line);
+    font-style: italic;
+  }
+
+  /* Access-large overrides for swatch fields */
+  body.access-large .swatch-num,
+  body.access-large .swatch-area-select { font-size: 16px; padding: 8px 10px; }
+  body.access-large .swatch-area-select { padding-right: 24px; }
+  body.access-large .swatch-compare-value { font-size: 15px; }
+  body.access-large .swatch-compare-note { font-size: 15px; }
+
   /* "Currently working on" pill (top of project) */
   .working-on-pill {
     display: flex;
@@ -1300,6 +1409,37 @@
         <textarea class="info-input" id="info-gauge" rows="1" placeholder='e.g. 18 sts × 24 rows = 4″' autocomplete="off"></textarea>
       </div>
       <div class="detect-toast" id="detect-toast"></div>
+    </div>
+
+    <div class="pattern-info-section">
+      <div class="pattern-info-header">
+        <div class="pattern-info-title">My swatch</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Stitches</div>
+        <div class="swatch-count-row">
+          <input type="number" inputmode="decimal" step="0.25" id="sw-sts" placeholder="—" class="swatch-num" autocomplete="off" />
+          <span class="swatch-per">per</span>
+          <select id="sw-area" class="swatch-area-select" aria-label="Swatch area">
+            <option value="in_4">4″</option>
+            <option value="cm_10">10 cm</option>
+            <option value="in_1">1″</option>
+          </select>
+        </div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Rows</div>
+        <div class="swatch-count-row">
+          <input type="number" inputmode="decimal" step="0.25" id="sw-rows" placeholder="—" class="swatch-num" autocomplete="off" />
+          <span class="swatch-per">per</span>
+          <span class="swatch-area-mirror" id="sw-area-mirror">4″</span>
+        </div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Needle / Hook</div>
+        <textarea class="info-input" id="sw-needle" rows="1" placeholder="e.g. US 9 / 5.5mm" autocomplete="off"></textarea>
+      </div>
+      <div class="swatch-compare" id="swatch-compare"></div>
     </div>
 
     <div class="pattern-info-section">
@@ -1835,6 +1975,15 @@
     refreshPersonDisplay();
     document.getElementById('info-working-on').value = p.workingOn || '';
     renderMarkers();
+    // My swatch
+    const sw = p.swatch || {};
+    document.getElementById('sw-sts').value = (sw.sts !== null && sw.sts !== undefined && isFinite(sw.sts)) ? sw.sts : '';
+    document.getElementById('sw-rows').value = (sw.rows !== null && sw.rows !== undefined && isFinite(sw.rows)) ? sw.rows : '';
+    const areaKey = ['in_4', 'cm_10', 'in_1'].includes(sw.area) ? sw.area : 'in_4';
+    document.getElementById('sw-area').value = areaKey;
+    document.getElementById('sw-area-mirror').textContent = swatchAreaLabel(areaKey);
+    document.getElementById('sw-needle').value = sw.needle || '';
+    refreshSwatchCompare();
     // Resize textareas now that values are in
     requestAnimationFrame(() => refreshAllInfoFieldHeights());
     renderActionRows();
@@ -2765,7 +2914,7 @@
 
     // ----- Gauge (single value) -----
     // Handles "24 sts and 24 rows = 4 inches" AND "24 st & 36 rows in 4"" variants.
-    const gaugeMatch = tFlat.match(/(\d+)\s*sts?\s*(?:and|×|x|by|&|\+)\s*(\d+)\s*rows?\s+(?:=|in)\s+(\d+(?:\.\d+)?)\s*(inches?|in\b|cm|"|″)/i);
+    const gaugeMatch = tFlat.match(/(\d+)\s*sts?\s*(?:and|×|x|by|&|\+)\s*(\d+)\s*rows?\s+(?:=|in)\s+(\d+(?:\.\d+)?)\s*(inch(?:es)?|in\b|cm|"|″)/i);
     if (gaugeMatch) {
       const unit = /cm/i.test(gaugeMatch[4]) ? 'cm' : '″';
       result.gauge = `${gaugeMatch[1]} sts × ${gaugeMatch[2]} rows = ${gaugeMatch[3]}${unit}`;
@@ -2859,6 +3008,7 @@
       document.getElementById('info-needles').value = p.needles || '';
       document.getElementById('info-gauge').value = p.gauge || '';
       refreshAllInfoFieldHeights();
+      refreshSwatchCompare();
       showDetectToast(`Detected ${filled} field${filled === 1 ? '' : 's'} from PDF`);
     }
   }
@@ -2885,6 +3035,7 @@
         document.getElementById('info-needles').value = p.needles;
         document.getElementById('info-gauge').value = p.gauge;
         refreshAllInfoFieldHeights();
+        refreshSwatchCompare();
         const filled = [info.yarn, info.needles, info.gauge].filter(Boolean).length;
         showDetectToast(filled ? `Detected ${filled} field${filled === 1 ? '' : 's'}` : 'Nothing detected — try editing by hand');
       }
@@ -2902,7 +3053,7 @@
     el.style.height = el.scrollHeight + 'px';
   }
   function refreshAllInfoFieldHeights() {
-    ['info-yarn', 'info-needles', 'info-gauge', 'info-size-making'].forEach(id => {
+    ['info-yarn', 'info-needles', 'info-gauge', 'info-size-making', 'sw-needle'].forEach(id => {
       const el = document.getElementById(id);
       if (el) autoResizeInfoField(el);
     });
@@ -2921,9 +3072,189 @@
         if (!p) return;
         p[field] = el.value;
         saveProjects(projects);
-        // Refresh home card preview line on next return to home
+        // The swatch comparison depends on the pattern gauge; refresh on any edit.
+        if (field === 'gauge') refreshSwatchCompare();
       }, 400);
     });
+  });
+
+  // ------- My swatch (per-project user gauge measurements) -------
+  // Pattern gauges show up in many formats. This parser handles the common
+  // ones and returns null when the text is too unusual to compare safely.
+  function parsePatternGauge(str) {
+    if (!str || typeof str !== 'string') return null;
+    const s = str.toLowerCase();
+    const stsMatch = s.match(/(\d+(?:\.\d+)?)\s*(?:sts?|stitches?)/);
+    if (!stsMatch) return null;
+    const sts = parseFloat(stsMatch[1]);
+    const rowsMatch = s.match(/(\d+(?:\.\d+)?)\s*(?:rows?|rnds?|rounds?)/);
+    const rows = rowsMatch ? parseFloat(rowsMatch[1]) : null;
+    // Find the area. Prime / quote characters and "in"/"inches" all count as inches.
+    let area = null;
+    // First try "= 4 inches" / "/ 4 cm" — explicit separator before the area number
+    const explicit = s.match(/[=\/]\s*(\d+(?:\.\d+)?)\s*(?:inch(?:es)?\b|in\b|cm\b|[″"'])/);
+    if (explicit) {
+      area = {
+        value: parseFloat(explicit[1]),
+        unit: /cm\b/.test(explicit[0]) ? 'cm' : 'in',
+      };
+    } else {
+      // Otherwise: any digit followed (after whitespace) by an inch / cm unit
+      const inNum = s.match(/(\d+(?:\.\d+)?)\s*(?:inch(?:es)?\b|[″"'])/);
+      const cmNum = s.match(/(\d+(?:\.\d+)?)\s*cm\b/);
+      if (inNum) area = { value: parseFloat(inNum[1]), unit: 'in' };
+      else if (cmNum) area = { value: parseFloat(cmNum[1]), unit: 'cm' };
+      else if (/(?:per|\/)\s*(?:inch(?:es)?|in\b)/.test(s)) area = { value: 1, unit: 'in' };
+      else if (/(?:per|\/)\s*cm\b/.test(s)) area = { value: 1, unit: 'cm' };
+      else return null;
+    }
+    return { sts, rows, area };
+  }
+
+  // Convert any (count, area) into stitches-per-inch for fair comparison.
+  function perInch(count, area) {
+    if (!isFinite(count) || count <= 0) return null;
+    let inches = area.value;
+    if (area.unit === 'cm') inches = area.value / 2.54;
+    if (!isFinite(inches) || inches <= 0) return null;
+    return count / inches;
+  }
+
+  // Maps the swatch area dropdown value to a { value, unit } object.
+  function swatchAreaToObj(areaKey) {
+    if (areaKey === 'cm_10') return { value: 10, unit: 'cm' };
+    if (areaKey === 'in_1') return { value: 1, unit: 'in' };
+    return { value: 4, unit: 'in' }; // default: in_4
+  }
+  function swatchAreaLabel(areaKey) {
+    if (areaKey === 'cm_10') return '10 cm';
+    if (areaKey === 'in_1') return '1″';
+    return '4″';
+  }
+
+  function gaugeRecommendation(userPerIn, patternPerIn) {
+    if (!userPerIn || !patternPerIn) return null;
+    const diff = (userPerIn - patternPerIn) / patternPerIn;
+    if (Math.abs(diff) < 0.05) {
+      return { kind: 'match', message: 'Looks good. Your stitch gauge matches the pattern.' };
+    }
+    if (diff > 0) {
+      return { kind: 'adjust', message: 'Your stitches are tighter than the pattern (more sts per inch). Try going up a needle size.' };
+    }
+    return { kind: 'adjust', message: 'Your stitches are looser than the pattern (fewer sts per inch). Try going down a needle size.' };
+  }
+
+  function refreshSwatchCompare() {
+    const compareEl = document.getElementById('swatch-compare');
+    if (!compareEl) return;
+    compareEl.innerHTML = '';
+
+    const p = getCurrentProject();
+    if (!p) return;
+
+    const swatch = p.swatch || {};
+    const userSts = Number(swatch.sts);
+    const userRows = Number(swatch.rows);
+    const userAreaObj = swatchAreaToObj(swatch.area);
+    const userAreaLabel = swatchAreaLabel(swatch.area);
+
+    const userHasSts = isFinite(userSts) && userSts > 0;
+    const userHasRows = isFinite(userRows) && userRows > 0;
+
+    const patternGaugeText = (document.getElementById('info-gauge').value || '').trim();
+    const patternParsed = parsePatternGauge(patternGaugeText);
+
+    // Nothing useful to show
+    if (!userHasSts && !patternGaugeText) return;
+
+    // Build the rows
+    const addRow = (label, value) => {
+      const row = document.createElement('div');
+      row.className = 'swatch-compare-row';
+      const l = document.createElement('span');
+      l.className = 'swatch-compare-label';
+      l.textContent = label;
+      const v = document.createElement('span');
+      v.className = 'swatch-compare-value';
+      v.textContent = value;
+      row.appendChild(l);
+      row.appendChild(v);
+      compareEl.appendChild(row);
+    };
+
+    if (patternGaugeText) {
+      if (patternParsed) {
+        const areaText = patternParsed.area.unit === 'cm'
+          ? patternParsed.area.value + ' cm'
+          : patternParsed.area.value + '″';
+        const rowsPart = patternParsed.rows ? ' × ' + patternParsed.rows + ' rows' : '';
+        addRow('Pattern gauge', patternParsed.sts + ' sts' + rowsPart + ' / ' + areaText);
+      } else {
+        addRow('Pattern gauge', patternGaugeText);
+      }
+    }
+
+    if (userHasSts || userHasRows) {
+      const rowsPart = userHasRows ? ' × ' + userRows + ' rows' : '';
+      const stsPart = userHasSts ? userSts + ' sts' : '— sts';
+      addRow('Your gauge', stsPart + rowsPart + ' / ' + userAreaLabel);
+    }
+
+    // Recommendation only when we have parsed pattern sts AND user sts
+    if (userHasSts && patternParsed) {
+      const userStsPerIn = perInch(userSts, userAreaObj);
+      const patternStsPerIn = perInch(patternParsed.sts, patternParsed.area);
+      const rec = gaugeRecommendation(userStsPerIn, patternStsPerIn);
+      if (rec) {
+        const note = document.createElement('div');
+        note.className = 'swatch-compare-note ' + (rec.kind === 'match' ? 'match' : 'adjust');
+        note.textContent = rec.message;
+        compareEl.appendChild(note);
+      }
+    } else if (userHasSts && patternGaugeText && !patternParsed) {
+      // Pattern gauge text is unparseable; tell the user instead of guessing
+      const note = document.createElement('div');
+      note.className = 'swatch-compare-note note';
+      note.textContent = "Couldn't read the pattern's gauge automatically. Compare the numbers above yourself.";
+      compareEl.appendChild(note);
+    }
+  }
+
+  // Wire the swatch inputs (debounced save) + reflect area changes
+  const swStsEl = document.getElementById('sw-sts');
+  const swRowsEl = document.getElementById('sw-rows');
+  const swAreaEl = document.getElementById('sw-area');
+  const swNeedleEl = document.getElementById('sw-needle');
+  const swAreaMirror = document.getElementById('sw-area-mirror');
+  let swatchSaveTimer = null;
+
+  function saveSwatchSoon() {
+    if (!currentProjectId) return;
+    clearTimeout(swatchSaveTimer);
+    swatchSaveTimer = setTimeout(() => {
+      const p = getCurrentProject();
+      if (!p) return;
+      if (!p.swatch) p.swatch = {};
+      const stsVal = swStsEl.value.trim();
+      const rowsVal = swRowsEl.value.trim();
+      p.swatch.sts = stsVal === '' ? null : Number(stsVal);
+      p.swatch.rows = rowsVal === '' ? null : Number(rowsVal);
+      p.swatch.area = swAreaEl.value;
+      p.swatch.needle = swNeedleEl.value;
+      saveProjects(projects);
+      refreshSwatchCompare();
+    }, 400);
+  }
+
+  swStsEl.addEventListener('input', saveSwatchSoon);
+  swRowsEl.addEventListener('input', saveSwatchSoon);
+  swAreaEl.addEventListener('change', () => {
+    swAreaMirror.textContent = swatchAreaLabel(swAreaEl.value);
+    saveSwatchSoon();
+  });
+  swNeedleEl.addEventListener('input', () => {
+    autoResizeInfoField(swNeedleEl);
+    saveSwatchSoon();
   });
 
   // ------- Notes (debounced autosave) -------
