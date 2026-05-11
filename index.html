@@ -8,12 +8,12 @@
 <meta name="apple-mobile-web-app-title" content="stitchnest" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="theme-color" content="#0A3323" />
-<meta name="description" content="Pattern library, stitch and row counters, drawing on patterns, and action-row alerts for knitters." />
+<meta name="description" content="Pattern library, stitch and row counters, drawing on patterns, and action-row alerts for fiber crafters." />
 <link rel="manifest" href="manifest.json" />
 <link rel="apple-touch-icon" href="apple-touch-icon.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png" />
-<title>stitchnest — knitting companion</title>
+<title>stitchnest — fiber craft companion</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
   :root {
@@ -1000,6 +1000,111 @@
   }
   .marker-desc.empty { color: var(--ink-soft); font-style: italic; }
 
+  /* Settings list */
+  .settings-list { display: flex; flex-direction: column; }
+  .settings-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .settings-item:last-of-type { border-bottom: none; }
+  .settings-item-main { flex: 1; min-width: 0; }
+  .settings-item-title { font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+  .settings-item-desc { font-size: 13px; color: var(--ink-soft); line-height: 1.4; }
+
+  /* iOS-style toggle switch */
+  .toggle {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 30px;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .toggle input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: var(--line);
+    border-radius: 30px;
+    transition: background 0.2s;
+  }
+  .toggle-slider::before {
+    content: "";
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    left: 3px;
+    top: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  }
+  .toggle input:checked + .toggle-slider { background: var(--accent); }
+  .toggle input:checked + .toggle-slider::before { transform: translateX(22px); }
+
+  /* Accessibility: larger text and touch targets.
+     Toggle in Settings adds body.access-large. Overrides only the visible
+     surfaces; behavior is unchanged. */
+  body.access-large .app-title { font-size: 26px; }
+  body.access-large .icon-btn { font-size: 17px; padding: 10px 14px; }
+  body.access-large .detail-title { font-size: 28px; }
+  body.access-large .detail-sub { font-size: 15px; }
+  body.access-large .pattern-info-title,
+  body.access-large .action-section-title { font-size: 13px; }
+  body.access-large .info-label { font-size: 13px; }
+  body.access-large .info-input { font-size: 17px; min-height: 32px; }
+  body.access-large .notes-textarea { font-size: 17px; }
+  body.access-large .working-on-input { font-size: 16px; }
+  body.access-large .working-on-label { font-size: 12px; }
+  body.access-large .counter-label { font-size: 14px; }
+  body.access-large .counter-value { font-size: 56px; }
+  body.access-large .counter-btn { font-size: 32px; padding: 18px 24px; }
+  body.access-large .counter-reset { font-size: 14px; padding: 8px 14px; }
+  body.access-large .action-item { font-size: 16px; padding: 13px 14px; }
+  body.access-large .action-row-num { font-size: 14px; padding: 4px 10px; min-width: 44px; }
+  body.access-large .marker-label-pill { font-size: 14px; padding: 5px 10px; min-width: 50px; }
+  body.access-large .marker-desc { font-size: 16px; }
+  body.access-large .menu-item { font-size: 17px; padding: 16px 18px; }
+  body.access-large .btn { font-size: 17px; padding: 16px; }
+  body.access-large .detect-btn,
+  body.access-large .add-action-btn { font-size: 14px; padding: 8px 14px; }
+  body.access-large .modal h3 { font-size: 22px; }
+  body.access-large .modal label { font-size: 14px; }
+  body.access-large .modal input[type="text"],
+  body.access-large .modal input[type="number"] { font-size: 17px; padding: 14px; }
+  body.access-large .person-card-name { font-size: 17px; }
+  body.access-large .person-card-stats { font-size: 13px; }
+  body.access-large .person-display { font-size: 14px; padding: 12px 14px; }
+  body.access-large .pdf-page-info { font-size: 14px; }
+  body.access-large .pdf-nav button { font-size: 16px; padding: 8px 14px; }
+  body.access-large .draw-mode-btn { font-size: 14px; padding: 8px 14px; }
+  body.access-large .color-swatch { width: 38px; height: 38px; }
+  body.access-large .tool-icon-btn { width: 40px; height: 40px; font-size: 18px; }
+  body.access-large .toast { font-size: 16px; padding: 12px 22px; }
+  body.access-large .empty h2 { font-size: 24px; }
+  body.access-large .empty p { font-size: 17px; }
+  body.access-large .action-empty,
+  body.access-large .people-empty { font-size: 14px; }
+  body.access-large .fab { width: 64px; height: 64px; font-size: 34px; }
+  body.access-large .settings-item-title { font-size: 17px; }
+  body.access-large .settings-item-desc { font-size: 14px; }
+  /* Home cards bigger */
+  body.access-large .project-card-title,
+  body.access-large .project-name { font-size: 17px; }
+  body.access-large .project-card-meta,
+  body.access-large .project-meta { font-size: 13px; }
+  body.access-large .project-specs { font-size: 13px; }
+
   .toast {
     position: fixed;
     bottom: 90px;
@@ -1288,6 +1393,10 @@
         <span>My people</span>
         <span class="chev">›</span>
       </button>
+      <button class="menu-item" id="menu-settings-btn">
+        <span>Settings</span>
+        <span class="chev">›</span>
+      </button>
       <button class="menu-item" id="menu-backup-btn">
         <span>Backup &amp; restore</span>
         <span class="chev">›</span>
@@ -1299,12 +1408,39 @@
   </div>
 </div>
 
+<!-- Settings modal -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal">
+    <h3>Settings</h3>
+    <p style="margin:0 0 14px;color:var(--ink-soft);font-size:13px;line-height:1.45">
+      Adjust how the app looks and feels. Changes save automatically.
+    </p>
+
+    <div class="settings-list">
+      <div class="settings-item">
+        <div class="settings-item-main">
+          <div class="settings-item-title">Larger text and buttons</div>
+          <div class="settings-item-desc">Bumps up text size and touch target size across the app. Helpful if the default feels small.</div>
+        </div>
+        <label class="toggle" for="set-larger-text">
+          <input type="checkbox" id="set-larger-text" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="modal-actions" style="margin-top:18px">
+      <button class="btn btn-secondary" id="settings-close" style="width:100%">Done</button>
+    </div>
+  </div>
+</div>
+
 <!-- My people modal (list of saved people) -->
 <div class="modal-overlay" id="people-modal">
   <div class="modal">
     <h3>My people</h3>
     <p style="margin:0 0 14px;color:var(--ink-soft);font-size:13px;line-height:1.45">
-      Save measurements for the people you knit for. You can pick a person inside any project to see their measurements while you choose a size.
+      Save measurements for the people you make for. You can pick a person inside any project to see their measurements while you choose a size.
     </p>
     <button class="btn btn-primary" id="add-person-btn" style="width:100%;margin-bottom:14px">+ Add person</button>
     <div class="people-list" id="people-list"></div>
@@ -1391,6 +1527,20 @@
     localStorage.setItem(PEOPLE_KEY, JSON.stringify(list));
   }
 
+  // App-wide settings (accessibility, future toggles)
+  const SETTINGS_KEY = 'stitch.settings.v1';
+  function loadSettings() {
+    try {
+      const stored = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+      return { largerText: !!stored.largerText };
+    } catch {
+      return { largerText: false };
+    }
+  }
+  function saveSettings(s) {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(s));
+  }
+
   let dbPromise;
   function openDB() {
     if (dbPromise) return dbPromise;
@@ -1435,6 +1585,7 @@
   // ------- App state -------
   let projects = loadProjects();
   let people = loadPeople();
+  let settings = loadSettings();
   let currentProjectId = null;
   let currentPdfDoc = null;
   let currentPage = 1;
@@ -2458,6 +2609,7 @@
   const peopleModal = document.getElementById('people-modal');
   const personEditModal = document.getElementById('person-edit-modal');
   const backupModal = document.getElementById('backup-modal');
+  const settingsModal = document.getElementById('settings-modal');
 
   document.getElementById('menu-btn').addEventListener('click', () => menuModal.classList.add('open'));
   document.getElementById('menu-close').addEventListener('click', () => menuModal.classList.remove('open'));
@@ -2467,10 +2619,37 @@
     menuModal.classList.remove('open');
     openPeopleModal();
   });
+  document.getElementById('menu-settings-btn').addEventListener('click', () => {
+    menuModal.classList.remove('open');
+    openSettingsModal();
+  });
   document.getElementById('menu-backup-btn').addEventListener('click', () => {
     menuModal.classList.remove('open');
     backupModal.classList.add('open');
   });
+
+  // ------- Settings modal -------
+  function applySettings() {
+    document.body.classList.toggle('access-large', !!settings.largerText);
+  }
+
+  function openSettingsModal() {
+    // Sync the toggle state with the saved value every time we open
+    document.getElementById('set-larger-text').checked = !!settings.largerText;
+    settingsModal.classList.add('open');
+  }
+  document.getElementById('settings-close').addEventListener('click', () => settingsModal.classList.remove('open'));
+  settingsModal.addEventListener('click', (e) => { if (e.target === settingsModal) settingsModal.classList.remove('open'); });
+
+  document.getElementById('set-larger-text').addEventListener('change', (e) => {
+    settings.largerText = !!e.target.checked;
+    saveSettings(settings);
+    applySettings();
+    toast(settings.largerText ? 'Larger text on' : 'Larger text off');
+  });
+
+  // Apply saved settings on first paint so the user never sees a default-sized flash
+  applySettings();
 
   // ------- Backup & restore -------
   document.getElementById('backup-close').addEventListener('click', () => backupModal.classList.remove('open'));

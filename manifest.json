@@ -1,7 +1,7 @@
 {
-  "name": "stitchnest — knitting companion",
+  "name": "stitchnest — fiber craft companion",
   "short_name": "stitchnest",
-  "description": "Pattern library, stitch and row counters, drawing on patterns, and action-row alerts for knitters.",
+  "description": "Pattern library, stitch and row counters, drawing on patterns, and action-row alerts for fiber crafters.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
