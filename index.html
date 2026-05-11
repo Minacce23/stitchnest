@@ -1105,6 +1105,53 @@
   body.access-large .project-meta { font-size: 13px; }
   body.access-large .project-specs { font-size: 13px; }
 
+  /* Continuous scroll mode: stacked page wraps replace the single canvas */
+  .pdf-page-wrap {
+    position: relative;
+    display: block;
+    margin: 0 auto 10px;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    line-height: 0;
+  }
+  .pdf-page-wrap canvas {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+  .pdf-page-wrap .scroll-draw-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    touch-action: auto;
+  }
+  .pdf-page-wrap .scroll-draw-canvas.active {
+    pointer-events: auto;
+    touch-action: none;
+    cursor: crosshair;
+  }
+  .pdf-page-num {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: rgba(10, 51, 35, 0.65);
+    color: white;
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.5;
+    pointer-events: none;
+  }
+  /* When scroll mode is active, hide single-page UI */
+  body.scroll-mode #pdf-canvas,
+  body.scroll-mode #draw-canvas { display: none !important; }
+  body.scroll-mode #pdf-prev,
+  body.scroll-mode #pdf-next { display: none; }
+  body.scroll-mode .pdf-page-info-prefix { display: inline; }
+
   .toast {
     position: fixed;
     bottom: 90px;
@@ -1427,6 +1474,16 @@
           <span class="toggle-slider"></span>
         </label>
       </div>
+      <div class="settings-item">
+        <div class="settings-item-main">
+          <div class="settings-item-title">Continuous scroll PDFs</div>
+          <div class="settings-item-desc">Scroll through every page of the pattern instead of tapping next / previous. Drawing, pinch zoom, and saved strokes still work on each page.</div>
+        </div>
+        <label class="toggle" for="set-scroll-mode">
+          <input type="checkbox" id="set-scroll-mode" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
     </div>
 
     <div class="modal-actions" style="margin-top:18px">
@@ -1532,9 +1589,12 @@
   function loadSettings() {
     try {
       const stored = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-      return { largerText: !!stored.largerText };
+      return {
+        largerText: !!stored.largerText,
+        scrollMode: !!stored.scrollMode,
+      };
     } catch {
-      return { largerText: false };
+      return { largerText: false, scrollMode: false };
     }
   }
   function saveSettings(s) {
@@ -1710,7 +1770,7 @@
     currentPage = Math.min(Math.max(1, savedPage || 1), currentPdfDoc.numPages);
     document.getElementById('pdf-empty').classList.add('hidden');
     document.getElementById('pdf-loaded').classList.remove('hidden');
-    await renderPage();
+    await renderPdf();
     // Now that the PDF is loaded, enable manual re-detect and try auto-detect
     // for empty fields (no overwrite of manual edits).
     document.getElementById('detect-pattern-btn').disabled = false;
@@ -1739,6 +1799,86 @@
     document.getElementById('pdf-next').disabled = currentPage >= currentPdfDoc.numPages;
   }
 
+  // Multi-page render for scroll mode: builds N stacked .pdf-page-wrap blocks,
+  // each with its own pdf canvas, draw canvas, and bound pointer handlers.
+  async function renderAllPages() {
+    if (!currentPdfDoc) return;
+    const stage = document.getElementById('pdf-stage');
+    // Remove any previously-rendered scroll-mode wraps so we don't stack duplicates
+    stage.querySelectorAll('.pdf-page-wrap').forEach(el => el.remove());
+
+    const numPages = currentPdfDoc.numPages;
+    for (let i = 1; i <= numPages; i++) {
+      const wrap = document.createElement('div');
+      wrap.className = 'pdf-page-wrap';
+      wrap.dataset.page = String(i);
+
+      const pdfCanvas = document.createElement('canvas');
+      const dCanvas = document.createElement('canvas');
+      dCanvas.className = 'scroll-draw-canvas';
+      if (drawMode) dCanvas.classList.add('active');
+
+      wrap.appendChild(pdfCanvas);
+      wrap.appendChild(dCanvas);
+
+      const pageLabel = document.createElement('div');
+      pageLabel.className = 'pdf-page-num';
+      pageLabel.textContent = String(i);
+      wrap.appendChild(pageLabel);
+
+      stage.appendChild(wrap);
+
+      const page = await currentPdfDoc.getPage(i);
+      const viewport = page.getViewport({ scale: currentScale });
+      pdfCanvas.width = viewport.width;
+      pdfCanvas.height = viewport.height;
+      dCanvas.width = viewport.width;
+      dCanvas.height = viewport.height;
+      await page.render({ canvasContext: pdfCanvas.getContext('2d'), viewport }).promise;
+
+      // Replay any saved strokes for this page
+      const strokes = getPageStrokesFor(i);
+      if (strokes.length > 0) {
+        redrawAnnotationsOn(dCanvas.getContext('2d'), dCanvas, strokes);
+      }
+
+      // Wire pointer handlers tied to this specific page's number
+      wireDrawHandlers(dCanvas, () => i);
+    }
+
+    // Indicator shows total count instead of "X / Y"
+    document.getElementById('pdf-page-info').textContent =
+      `${numPages} page${numPages === 1 ? '' : 's'}`;
+    document.getElementById('pdf-prev').disabled = true;
+    document.getElementById('pdf-next').disabled = true;
+
+    // Scroll to the last-viewed page
+    const savedPage = projects.find(x => x.id === currentProjectId)?.currentPage || 1;
+    const target = stage.querySelector(`.pdf-page-wrap[data-page="${savedPage}"]`);
+    if (target) {
+      requestAnimationFrame(() => {
+        const wrapEl = document.querySelector('.pdf-canvas-wrap');
+        const wrapRect = wrapEl.getBoundingClientRect();
+        const targetRect = target.getBoundingClientRect();
+        wrapEl.scrollTop += (targetRect.top - wrapRect.top);
+      });
+    }
+  }
+
+  // Entry point used everywhere outside the prev/next handlers (which are
+  // hidden in scroll mode). Routes to the right renderer based on settings.
+  async function renderPdf() {
+    if (!currentPdfDoc) return;
+    if (settings.scrollMode) {
+      await renderAllPages();
+    } else {
+      // Clean up any leftover scroll-mode wraps before single-page render
+      document.getElementById('pdf-stage')
+        .querySelectorAll('.pdf-page-wrap').forEach(el => el.remove());
+      await renderPage();
+    }
+  }
+
   document.getElementById('pdf-prev').addEventListener('click', () => {
     if (currentPage > 1) { currentPage--; renderPage(); saveCurrentPage(); }
   });
@@ -1746,10 +1886,10 @@
     if (currentPdfDoc && currentPage < currentPdfDoc.numPages) { currentPage++; renderPage(); saveCurrentPage(); }
   });
   document.getElementById('pdf-zoom-in').addEventListener('click', () => {
-    currentScale = Math.min(3, currentScale + 0.25); renderPage();
+    currentScale = Math.min(3, currentScale + 0.25); renderPdf();
   });
   document.getElementById('pdf-zoom-out').addEventListener('click', () => {
-    currentScale = Math.max(0.5, currentScale - 0.25); renderPage();
+    currentScale = Math.max(0.5, currentScale - 0.25); renderPdf();
   });
 
   // ------- Pinch-to-zoom on PDF -------
@@ -1770,15 +1910,18 @@
     // Kill any in-progress drawing stroke when a second finger arrives,
     // so the pinch doesn't leave a stray scribble behind.
     if (typeof isDrawing !== 'undefined' && isDrawing) {
-      isDrawing = false;
-      if (activeStroke) {
+      if (activeStroke && activeStrokePage != null) {
         try {
-          const strokes = getPageStrokes();
+          const strokes = getPageStrokesFor(activeStrokePage);
           const idx = strokes.indexOf(activeStroke);
           if (idx >= 0) strokes.splice(idx, 1);
         } catch {}
       }
+      isDrawing = false;
       activeStroke = null;
+      activeStrokeCanvas = null;
+      activeStrokeCtx = null;
+      activeStrokePage = null;
     }
   }
 
@@ -1819,11 +1962,37 @@
     pinchState = null;
     if (Math.abs(newScale - currentScale) > 0.005) {
       currentScale = newScale;
-      renderPage();
+      renderPdf();
     }
   }
   pdfWrapEl.addEventListener('touchend', endPinch);
   pdfWrapEl.addEventListener('touchcancel', endPinch);
+
+  // ------- Scroll-mode page memory -------
+  // When the user scrolls in scroll mode, save whichever page is closest
+  // to the top of the viewport as currentPage, debounced so we don't
+  // hammer localStorage on every scroll event.
+  let scrollSaveTimer = null;
+  pdfWrapEl.addEventListener('scroll', () => {
+    if (!settings.scrollMode || !currentPdfDoc || !currentProjectId) return;
+    clearTimeout(scrollSaveTimer);
+    scrollSaveTimer = setTimeout(() => {
+      const wraps = pdfWrapEl.querySelectorAll('.pdf-page-wrap');
+      if (wraps.length === 0) return;
+      const top = pdfWrapEl.scrollTop;
+      let closest = wraps[0];
+      let bestDist = Infinity;
+      wraps.forEach(w => {
+        const d = Math.abs(w.offsetTop - top);
+        if (d < bestDist) { bestDist = d; closest = w; }
+      });
+      const pageNum = Number(closest.dataset.page);
+      if (pageNum && pageNum !== currentPage) {
+        currentPage = pageNum;
+        saveCurrentPage();
+      }
+    }, 300);
+  });
 
   // ------- Drawing layer -------
   // Strokes are stored per project per page in normalized PDF page units (scale = 1),
@@ -1842,103 +2011,141 @@
     if (!p.annotations) p.annotations = {};
     return p.annotations;
   }
-  function getPageStrokes() {
+  function getPageStrokesFor(pageNum) {
     const ann = getProjectAnnotations();
     if (!ann) return [];
-    if (!ann[currentPage]) ann[currentPage] = [];
-    return ann[currentPage];
+    if (!ann[pageNum]) ann[pageNum] = [];
+    return ann[pageNum];
+  }
+  function getPageStrokes() {
+    // Paged-mode shim: defaults to the page currently rendered
+    return getPageStrokesFor(currentPage);
   }
   function persistAnnotations() {
     saveProjects(projects);
   }
 
-  function redrawAnnotations() {
-    drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
-    const strokes = getPageStrokes();
-    strokes.forEach(s => drawStroke(s));
-  }
-
-  function drawStroke(s) {
+  function drawStrokeOn(ctx, s) {
     if (!s.points || s.points.length === 0) return;
-    drawCtx.save();
+    ctx.save();
     if (s.tool === 'eraser') {
-      drawCtx.globalCompositeOperation = 'destination-out';
-      drawCtx.strokeStyle = 'rgba(0,0,0,1)';
-      drawCtx.lineWidth = s.width * currentScale;
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.strokeStyle = 'rgba(0,0,0,1)';
+      ctx.lineWidth = s.width * currentScale;
     } else {
-      drawCtx.globalCompositeOperation = 'source-over';
-      drawCtx.strokeStyle = s.color;
-      drawCtx.lineWidth = s.width * currentScale;
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.strokeStyle = s.color;
+      ctx.lineWidth = s.width * currentScale;
     }
-    drawCtx.lineCap = 'round';
-    drawCtx.lineJoin = 'round';
-    drawCtx.beginPath();
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
     const first = s.points[0];
-    drawCtx.moveTo(first.x * currentScale, first.y * currentScale);
+    ctx.moveTo(first.x * currentScale, first.y * currentScale);
     for (let i = 1; i < s.points.length; i++) {
       const pt = s.points[i];
-      drawCtx.lineTo(pt.x * currentScale, pt.y * currentScale);
+      ctx.lineTo(pt.x * currentScale, pt.y * currentScale);
     }
-    drawCtx.stroke();
-    drawCtx.restore();
+    ctx.stroke();
+    ctx.restore();
+  }
+  function drawStroke(s) {
+    // Paged-mode shim
+    drawStrokeOn(drawCtx, s);
   }
 
-  function pointerToPageCoords(e) {
-    const rect = drawCanvas.getBoundingClientRect();
-    const x = (e.clientX - rect.left) * (drawCanvas.width / rect.width);
-    const y = (e.clientY - rect.top) * (drawCanvas.height / rect.height);
+  function redrawAnnotationsOn(ctx, canvas, strokes) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    strokes.forEach(s => drawStrokeOn(ctx, s));
+  }
+  function redrawAnnotations() {
+    // Paged-mode shim
+    redrawAnnotationsOn(drawCtx, drawCanvas, getPageStrokes());
+  }
+
+  function pointerToCoordsOn(e, canvas) {
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+    const y = (e.clientY - rect.top) * (canvas.height / rect.height);
     return { x: x / currentScale, y: y / currentScale };
   }
+  function pointerToPageCoords(e) {
+    // Paged-mode shim
+    return pointerToCoordsOn(e, drawCanvas);
+  }
 
-  drawCanvas.addEventListener('pointerdown', (e) => {
-    if (!drawMode) return;
-    e.preventDefault();
-    drawCanvas.setPointerCapture(e.pointerId);
-    isDrawing = true;
-    const pt = pointerToPageCoords(e);
-    activeStroke = {
-      tool: currentTool,
-      color: currentColor,
-      width: currentTool === 'eraser' ? 14 : (currentColor.startsWith('rgba') ? 14 : 2.5),
-      points: [pt],
-    };
-    const strokes = getPageStrokes();
-    strokes.push(activeStroke);
-    drawStroke(activeStroke);
-  });
-  drawCanvas.addEventListener('pointermove', (e) => {
-    if (!isDrawing || !activeStroke) return;
-    e.preventDefault();
-    const pt = pointerToPageCoords(e);
-    activeStroke.points.push(pt);
-    // Draw incremental line segment for smoothness
-    const prev = activeStroke.points[activeStroke.points.length - 2];
-    drawCtx.save();
-    if (activeStroke.tool === 'eraser') {
-      drawCtx.globalCompositeOperation = 'destination-out';
-      drawCtx.strokeStyle = 'rgba(0,0,0,1)';
-    } else {
-      drawCtx.globalCompositeOperation = 'source-over';
-      drawCtx.strokeStyle = activeStroke.color;
-    }
-    drawCtx.lineWidth = activeStroke.width * currentScale;
-    drawCtx.lineCap = 'round';
-    drawCtx.lineJoin = 'round';
-    drawCtx.beginPath();
-    drawCtx.moveTo(prev.x * currentScale, prev.y * currentScale);
-    drawCtx.lineTo(pt.x * currentScale, pt.y * currentScale);
-    drawCtx.stroke();
-    drawCtx.restore();
-  });
-  function endStroke(e) {
+  // Tracks the canvas/ctx/page for the in-progress stroke. In paged mode
+  // these always point to the static draw-canvas and currentPage. In scroll
+  // mode each page wrap has its own draw-canvas; pointerdown sets these to
+  // the canvas the user touched so pointermove/end act on the right page.
+  let activeStrokeCanvas = null;
+  let activeStrokeCtx = null;
+  let activeStrokePage = null;
+
+  function endStroke() {
     if (!isDrawing) return;
     isDrawing = false;
     activeStroke = null;
+    activeStrokeCanvas = null;
+    activeStrokeCtx = null;
+    activeStrokePage = null;
     persistAnnotations();
   }
-  drawCanvas.addEventListener('pointerup', endStroke);
-  drawCanvas.addEventListener('pointercancel', endStroke);
-  drawCanvas.addEventListener('pointerleave', endStroke);
+
+  function wireDrawHandlers(canvas, getPageNum) {
+    canvas.addEventListener('pointerdown', (e) => {
+      if (!drawMode) return;
+      e.preventDefault();
+      canvas.setPointerCapture(e.pointerId);
+      isDrawing = true;
+      activeStrokeCanvas = canvas;
+      activeStrokeCtx = canvas.getContext('2d');
+      const pageNum = getPageNum();
+      activeStrokePage = pageNum;
+      currentPage = pageNum; // remember last-touched page (drives clear/save)
+      const pt = pointerToCoordsOn(e, canvas);
+      activeStroke = {
+        tool: currentTool,
+        color: currentColor,
+        width: currentTool === 'eraser' ? 14 : (currentColor.startsWith('rgba') ? 14 : 2.5),
+        points: [pt],
+      };
+      const strokes = getPageStrokesFor(pageNum);
+      strokes.push(activeStroke);
+      drawStrokeOn(activeStrokeCtx, activeStroke);
+    });
+    canvas.addEventListener('pointermove', (e) => {
+      if (!isDrawing || !activeStroke || activeStrokeCanvas !== canvas) return;
+      e.preventDefault();
+      const pt = pointerToCoordsOn(e, canvas);
+      activeStroke.points.push(pt);
+      const prev = activeStroke.points[activeStroke.points.length - 2];
+      const ctx = activeStrokeCtx;
+      ctx.save();
+      if (activeStroke.tool === 'eraser') {
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.strokeStyle = 'rgba(0,0,0,1)';
+      } else {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.strokeStyle = activeStroke.color;
+      }
+      ctx.lineWidth = activeStroke.width * currentScale;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      ctx.moveTo(prev.x * currentScale, prev.y * currentScale);
+      ctx.lineTo(pt.x * currentScale, pt.y * currentScale);
+      ctx.stroke();
+      ctx.restore();
+    });
+    canvas.addEventListener('pointerup', endStroke);
+    canvas.addEventListener('pointercancel', endStroke);
+    canvas.addEventListener('pointerleave', endStroke);
+  }
+
+  // Wire the static draw-canvas (paged mode) once at startup.
+  // Scroll-mode page canvases get wired inside renderAllPages().
+  wireDrawHandlers(drawCanvas, () => currentPage);
 
   // Toolbar wiring
   const drawModeBtn = document.getElementById('draw-mode-btn');
@@ -1948,6 +2155,8 @@
     drawMode = !drawMode;
     drawModeBtn.classList.toggle('active', drawMode);
     drawCanvas.classList.toggle('active', drawMode);
+    // In scroll mode, all dynamic page canvases also need their active class flipped
+    document.querySelectorAll('.scroll-draw-canvas').forEach(c => c.classList.toggle('active', drawMode));
     drawToolbar.classList.toggle('disabled', !drawMode);
     drawModeBtn.textContent = drawMode ? '✓ Done' : '✎ Draw';
   });
@@ -1974,12 +2183,26 @@
     }
   });
 
+  // Repaints the correct canvas for a given page, whether we're in paged
+  // mode (static drawCanvas) or scroll mode (the page's dynamic canvas).
+  function refreshDrawingForPage(pageNum) {
+    if (settings.scrollMode) {
+      const wrap = document.querySelector('.pdf-page-wrap[data-page="' + pageNum + '"]');
+      if (!wrap) return;
+      const canvas = wrap.querySelector('.scroll-draw-canvas');
+      if (!canvas) return;
+      redrawAnnotationsOn(canvas.getContext('2d'), canvas, getPageStrokesFor(pageNum));
+    } else if (pageNum === currentPage) {
+      redrawAnnotations();
+    }
+  }
+
   document.getElementById('undo-btn').addEventListener('click', () => {
     const strokes = getPageStrokes();
     if (strokes.length === 0) return;
     strokes.pop();
     persistAnnotations();
-    redrawAnnotations();
+    refreshDrawingForPage(currentPage);
   });
 
   document.getElementById('clear-page-btn').addEventListener('click', () => {
@@ -1989,7 +2212,7 @@
     const ann = getProjectAnnotations();
     ann[currentPage] = [];
     persistAnnotations();
-    redrawAnnotations();
+    refreshDrawingForPage(currentPage);
   });
 
   // ------- Counters -------
@@ -2631,11 +2854,13 @@
   // ------- Settings modal -------
   function applySettings() {
     document.body.classList.toggle('access-large', !!settings.largerText);
+    document.body.classList.toggle('scroll-mode', !!settings.scrollMode);
   }
 
   function openSettingsModal() {
-    // Sync the toggle state with the saved value every time we open
+    // Sync each toggle with the saved value every time we open
     document.getElementById('set-larger-text').checked = !!settings.largerText;
+    document.getElementById('set-scroll-mode').checked = !!settings.scrollMode;
     settingsModal.classList.add('open');
   }
   document.getElementById('settings-close').addEventListener('click', () => settingsModal.classList.remove('open'));
@@ -2646,6 +2871,17 @@
     saveSettings(settings);
     applySettings();
     toast(settings.largerText ? 'Larger text on' : 'Larger text off');
+  });
+
+  document.getElementById('set-scroll-mode').addEventListener('change', (e) => {
+    settings.scrollMode = !!e.target.checked;
+    saveSettings(settings);
+    applySettings();
+    // Re-render the open PDF (if any) in the new mode immediately
+    if (currentPdfDoc && currentProjectId) {
+      renderPdf().catch(err => console.warn('Render after mode switch failed:', err));
+    }
+    toast(settings.scrollMode ? 'Continuous scroll on' : 'Continuous scroll off');
   });
 
   // Apply saved settings on first paint so the user never sees a default-sized flash
