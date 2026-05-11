@@ -1,7 +1,7 @@
 // stitchnest service worker
 // Caches the app shell and PDF.js so the app works offline.
 // Bump CACHE_VERSION whenever you change the HTML or assets to force an update.
-const CACHE_VERSION = 'stitchnest-v14';
+const CACHE_VERSION = 'stitchnest-v15';
 const APP_SHELL = [
   './',
   './index.html',

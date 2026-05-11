@@ -369,6 +369,39 @@
     cursor: crosshair;
   }
 
+  /* PDF.js text layer — invisible selectable spans positioned over the PDF
+     canvas. Long-press to select text on iOS, then copy and paste anywhere. */
+  .pdf-text-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    line-height: 1;
+    transform-origin: 0 0;
+    pointer-events: auto;
+    /* User-select must be enabled so the browser shows selection handles */
+    -webkit-user-select: text;
+    user-select: text;
+  }
+  .pdf-text-layer > span,
+  .pdf-text-layer > br {
+    color: transparent;
+    position: absolute;
+    white-space: pre;
+    cursor: text;
+    transform-origin: 0% 0%;
+    /* Some PDF.js builds expect this so spans don't intercept touches in odd ways */
+    pointer-events: auto;
+  }
+  .pdf-text-layer ::selection {
+    background: rgba(211, 150, 140, 0.35); /* Acorn & Ivy rose tint */
+  }
+  /* The static text layer (paged mode) gets hidden in scroll mode since
+     each page wrap renders its own. */
+  body.scroll-mode #pdf-text-layer-static { display: none !important; }
+
   /* Draw toolbar */
   .draw-toolbar {
     display: flex;
@@ -1316,6 +1349,7 @@
         <div class="pdf-canvas-wrap">
           <div class="pdf-stage" id="pdf-stage">
             <canvas id="pdf-canvas"></canvas>
+            <div class="pdf-text-layer" id="pdf-text-layer-static"></div>
             <canvas id="draw-canvas"></canvas>
           </div>
         </div>
@@ -1839,6 +1873,31 @@
     autoDetectIfEmpty().catch(err => console.warn('auto-detect failed:', err));
   }
 
+  // Renders PDF.js's selectable text layer into a container element.
+  // The text layer is invisible spans positioned over the rendered canvas
+  // so the OS can highlight, copy, and paste real text from the PDF.
+  async function renderTextLayerFor(page, viewport, container) {
+    if (!container || !pdfjsLib.renderTextLayer) return;
+    container.innerHTML = '';
+    // PDF.js 3.x uses --scale-factor on the container for span positioning
+    container.style.setProperty('--scale-factor', String(viewport.scale));
+    container.style.width = viewport.width + 'px';
+    container.style.height = viewport.height + 'px';
+    try {
+      const textContent = await page.getTextContent();
+      const task = pdfjsLib.renderTextLayer({
+        textContent,
+        container,
+        viewport,
+        textDivs: [],
+      });
+      await task.promise;
+    } catch (err) {
+      // Image-only PDFs return no text; fail silently rather than break the render
+      console.warn('Text layer render failed:', err);
+    }
+  }
+
   async function renderPage() {
     if (!currentPdfDoc) return;
     const page = await currentPdfDoc.getPage(currentPage);
@@ -1854,6 +1913,8 @@
     drawCanvas.height = viewport.height;
     drawCanvas.style.width = canvas.style.width || (canvas.offsetWidth + 'px');
     drawCanvas.style.height = canvas.style.height || (canvas.offsetHeight + 'px');
+    // Render selectable text overlay (sits between PDF and draw canvas)
+    await renderTextLayerFor(page, viewport, document.getElementById('pdf-text-layer-static'));
     redrawAnnotations();
     document.getElementById('pdf-page-info').textContent =
       `${currentPage} / ${currentPdfDoc.numPages}`;
@@ -1876,11 +1937,15 @@
       wrap.dataset.page = String(i);
 
       const pdfCanvas = document.createElement('canvas');
+      const textLayer = document.createElement('div');
+      textLayer.className = 'pdf-text-layer';
       const dCanvas = document.createElement('canvas');
       dCanvas.className = 'scroll-draw-canvas';
       if (drawMode) dCanvas.classList.add('active');
 
+      // DOM order = z-stack: pdf canvas (bottom), text layer (middle), draw canvas (top)
       wrap.appendChild(pdfCanvas);
+      wrap.appendChild(textLayer);
       wrap.appendChild(dCanvas);
 
       const pageLabel = document.createElement('div');
@@ -1897,6 +1962,9 @@
       dCanvas.width = viewport.width;
       dCanvas.height = viewport.height;
       await page.render({ canvasContext: pdfCanvas.getContext('2d'), viewport }).promise;
+
+      // Selectable text overlay for this page
+      await renderTextLayerFor(page, viewport, textLayer);
 
       // Replay any saved strokes for this page
       const strokes = getPageStrokesFor(i);
