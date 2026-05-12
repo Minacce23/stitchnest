@@ -292,20 +292,117 @@
   /* Project detail */
   .detail-header {
     display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .detail-header-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
     flex-direction: column;
     gap: 4px;
-    margin-bottom: 16px;
   }
   .detail-title {
     font-family: Georgia, serif;
     font-size: 24px;
     font-weight: 600;
     margin: 0;
+    word-break: break-word;
   }
   .detail-sub {
     color: var(--ink-soft);
     font-size: 13px;
   }
+  .edit-project-btn {
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    flex-shrink: 0;
+  }
+  .edit-project-btn:active { background: var(--accent-soft); }
+
+  /* Project home cards: color variants (light tints in light mode, dark tints in dark mode) */
+  .project-card.color-sage { background: #DCE3C1; }
+  .project-card.color-rose { background: #F5DBD4; }
+  .project-card.color-terracotta { background: #ECD0C7; }
+  .project-card.color-blue { background: #D0DAE8; }
+  .project-card.color-mustard { background: #E8DAB0; }
+  .project-card.color-lavender { background: #D8C8E0; }
+  .project-card.color-mint { background: #C8E0D5; }
+  body.theme-dark .project-card.color-sage { background: #2A3D28; }
+  body.theme-dark .project-card.color-rose { background: #3D2A28; }
+  body.theme-dark .project-card.color-terracotta { background: #3D2C26; }
+  body.theme-dark .project-card.color-blue { background: #1F2D3D; }
+  body.theme-dark .project-card.color-mustard { background: #3D3520; }
+  body.theme-dark .project-card.color-lavender { background: #2D2538; }
+  body.theme-dark .project-card.color-mint { background: #1F3530; }
+
+  /* Appearance pickers (icon + color) inside the Edit project modal */
+  .appearance-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .appearance-option {
+    width: 44px;
+    height: 44px;
+    border: 2px solid var(--line);
+    background: var(--surface-2);
+    border-radius: 12px;
+    font-size: 22px;
+    line-height: 1;
+    font-family: inherit;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .appearance-option:active { transform: scale(0.94); }
+  .appearance-option.active {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+  .color-swatch-card {
+    font-size: 0;
+    position: relative;
+  }
+  .color-swatch-card.color-default {
+    background: var(--surface);
+  }
+  .color-swatch-card.color-default::after {
+    content: "";
+    position: absolute;
+    inset: auto;
+    width: 22px;
+    height: 1.5px;
+    background: var(--ink-soft);
+    transform: rotate(-45deg);
+  }
+  .color-swatch-card.color-sage { background: #DCE3C1; }
+  .color-swatch-card.color-rose { background: #F5DBD4; }
+  .color-swatch-card.color-terracotta { background: #ECD0C7; }
+  .color-swatch-card.color-blue { background: #D0DAE8; }
+  .color-swatch-card.color-mustard { background: #E8DAB0; }
+  .color-swatch-card.color-lavender { background: #D8C8E0; }
+  .color-swatch-card.color-mint { background: #C8E0D5; }
+  body.theme-dark .color-swatch-card.color-default { background: var(--surface); }
+  body.theme-dark .color-swatch-card.color-sage { background: #2A3D28; }
+  body.theme-dark .color-swatch-card.color-rose { background: #3D2A28; }
+  body.theme-dark .color-swatch-card.color-terracotta { background: #3D2C26; }
+  body.theme-dark .color-swatch-card.color-blue { background: #1F2D3D; }
+  body.theme-dark .color-swatch-card.color-mustard { background: #3D3520; }
+  body.theme-dark .color-swatch-card.color-lavender { background: #2D2538; }
+  body.theme-dark .color-swatch-card.color-mint { background: #1F3530; }
 
   .pdf-section {
     background: var(--surface);
@@ -1387,8 +1484,11 @@
   <!-- Project detail view -->
   <section id="detail-view" class="hidden">
     <div class="detail-header">
-      <h1 class="detail-title" id="detail-title"></h1>
-      <div class="detail-sub" id="detail-sub"></div>
+      <div class="detail-header-main">
+        <h1 class="detail-title" id="detail-title"></h1>
+        <div class="detail-sub" id="detail-sub"></div>
+      </div>
+      <button class="edit-project-btn" id="edit-project-btn">Edit</button>
     </div>
 
     <div class="working-on-pill">
@@ -1617,6 +1717,46 @@
     <div class="modal-actions">
       <button class="btn btn-secondary" id="ar-cancel">Cancel</button>
       <button class="btn btn-primary" id="ar-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit project modal (name + folder icon + color) -->
+<div class="modal-overlay" id="edit-project-modal">
+  <div class="modal">
+    <h3>Edit project</h3>
+
+    <label for="ep-name">Name</label>
+    <input type="text" id="ep-name" placeholder="Project name" autocomplete="off" />
+
+    <label>Folder icon</label>
+    <div class="appearance-picker" id="ep-icon-picker">
+      <button class="appearance-option" type="button" data-icon="📁">📁</button>
+      <button class="appearance-option" type="button" data-icon="🧶">🧶</button>
+      <button class="appearance-option" type="button" data-icon="🧵">🧵</button>
+      <button class="appearance-option" type="button" data-icon="🧥">🧥</button>
+      <button class="appearance-option" type="button" data-icon="🧦">🧦</button>
+      <button class="appearance-option" type="button" data-icon="🧤">🧤</button>
+      <button class="appearance-option" type="button" data-icon="🎩">🎩</button>
+      <button class="appearance-option" type="button" data-icon="👕">👕</button>
+      <button class="appearance-option" type="button" data-icon="⭐">⭐</button>
+      <button class="appearance-option" type="button" data-icon="💜">💜</button>
+    </div>
+
+    <label>Folder color</label>
+    <div class="appearance-picker" id="ep-color-picker">
+      <button class="appearance-option color-swatch-card color-default" type="button" data-color="" title="Default"></button>
+      <button class="appearance-option color-swatch-card color-sage" type="button" data-color="sage" title="Sage"></button>
+      <button class="appearance-option color-swatch-card color-rose" type="button" data-color="rose" title="Rose"></button>
+      <button class="appearance-option color-swatch-card color-terracotta" type="button" data-color="terracotta" title="Terracotta"></button>
+      <button class="appearance-option color-swatch-card color-blue" type="button" data-color="blue" title="Blue"></button>
+      <button class="appearance-option color-swatch-card color-mustard" type="button" data-color="mustard" title="Mustard"></button>
+      <button class="appearance-option color-swatch-card color-lavender" type="button" data-color="lavender" title="Lavender"></button>
+      <button class="appearance-option color-swatch-card color-mint" type="button" data-color="mint" title="Mint"></button>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="ep-close" style="width:100%">Done</button>
     </div>
   </div>
 </div>
@@ -1920,14 +2060,18 @@
     projects.forEach(p => {
       const card = document.createElement('button');
       card.className = 'project-card';
+      // Apply a color tint class if the user picked one
+      if (p.color) card.classList.add('color-' + p.color);
       const specsLine = buildSpecsLine(p);
+      const icon = p.icon || '📁';
       card.innerHTML = `
-        <div class="project-folder">📁</div>
+        <div class="project-folder"></div>
         <div class="project-name"></div>
         <div class="project-meta">
           ${p.hasPdf ? '📄 pattern' : 'no pattern'} · ${p.rows || 0} rows
         </div>
         ${specsLine ? `<div class="project-specs"></div>` : ''}`;
+      card.querySelector('.project-folder').textContent = icon;
       card.querySelector('.project-name').textContent = p.name;
       if (specsLine) card.querySelector('.project-specs').textContent = specsLine;
       card.addEventListener('click', () => openProject(p.id));
@@ -1958,7 +2102,9 @@
     document.getElementById('detail-view').classList.remove('hidden');
     document.getElementById('back-btn').style.display = 'inline-block';
     document.getElementById('delete-btn').style.display = 'inline-block';
-    document.getElementById('menu-btn').style.display = 'none';
+    // Keep the ⋯ menu reachable inside a project so Settings / My People /
+    // Backup are one tap away, no need to navigate back to home first.
+    document.getElementById('menu-btn').style.display = 'inline-block';
     document.getElementById('header-spacer').style.display = 'none';
     document.getElementById('add-project-btn').style.display = 'none';
 
@@ -3943,6 +4089,73 @@
     saveProjects(projects);
     renderMarkers();
     closeMarkerModal();
+  });
+
+  // ------- Edit project modal (name + icon + color) -------
+  const editProjectModal = document.getElementById('edit-project-modal');
+
+  function syncEditProjectPickers() {
+    const p = getCurrentProject();
+    if (!p) return;
+    const icon = p.icon || '📁';
+    const color = p.color || '';
+    document.querySelectorAll('#ep-icon-picker .appearance-option').forEach(b => {
+      b.classList.toggle('active', b.dataset.icon === icon);
+    });
+    document.querySelectorAll('#ep-color-picker .appearance-option').forEach(b => {
+      b.classList.toggle('active', b.dataset.color === color);
+    });
+  }
+
+  function openEditProjectModal() {
+    const p = getCurrentProject();
+    if (!p) return;
+    document.getElementById('ep-name').value = p.name || '';
+    syncEditProjectPickers();
+    editProjectModal.classList.add('open');
+  }
+
+  document.getElementById('edit-project-btn').addEventListener('click', openEditProjectModal);
+  document.getElementById('ep-close').addEventListener('click', () => editProjectModal.classList.remove('open'));
+  editProjectModal.addEventListener('click', (e) => { if (e.target === editProjectModal) editProjectModal.classList.remove('open'); });
+
+  // Name field: debounced save + live update of the project title in the header
+  const epNameEl = document.getElementById('ep-name');
+  let epNameTimer = null;
+  epNameEl.addEventListener('input', () => {
+    if (!currentProjectId) return;
+    clearTimeout(epNameTimer);
+    epNameTimer = setTimeout(() => {
+      const p = getCurrentProject();
+      if (!p) return;
+      const newName = epNameEl.value.trim();
+      if (!newName) return; // ignore empty; revert happens when user types again
+      p.name = newName;
+      saveProjects(projects);
+      document.getElementById('detail-title').textContent = newName;
+    }, 400);
+  });
+
+  // Icon picker: tap any emoji → save + reflect on the home card next return
+  document.querySelectorAll('#ep-icon-picker .appearance-option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const p = getCurrentProject();
+      if (!p) return;
+      p.icon = btn.dataset.icon;
+      saveProjects(projects);
+      syncEditProjectPickers();
+    });
+  });
+
+  // Color picker: tap a swatch → save the named color (empty = default)
+  document.querySelectorAll('#ep-color-picker .appearance-option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const p = getCurrentProject();
+      if (!p) return;
+      p.color = btn.dataset.color || null;
+      saveProjects(projects);
+      syncEditProjectPickers();
+    });
   });
 
   // ------- Init -------
