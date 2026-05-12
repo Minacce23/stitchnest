@@ -150,8 +150,41 @@
     min-height: 130px;
     text-align: left;
     font-family: inherit;
+    /* Anchor for the per-card edit button */
+    position: relative;
   }
   .project-card:active { transform: scale(0.97); }
+  .project-card-edit-btn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 30px;
+    height: 30px;
+    border: none;
+    background: transparent;
+    border-radius: 50%;
+    color: var(--ink-soft);
+    font-size: 15px;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    font-family: inherit;
+    opacity: 0.65;
+  }
+  .project-card-edit-btn:active {
+    background: var(--accent-soft);
+    color: var(--accent);
+    opacity: 1;
+    transform: scale(0.94);
+  }
+  body.access-large .project-card-edit-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 17px;
+  }
   .project-folder {
     font-size: 32px;
     line-height: 1;
@@ -2068,13 +2101,19 @@
     const grid = document.createElement('div');
     grid.className = 'project-grid';
     projects.forEach(p => {
-      const card = document.createElement('button');
+      // Using a div instead of a button so the per-card edit button can sit
+      // inside it (button inside button is invalid HTML). role + tabindex
+      // preserve keyboard accessibility.
+      const card = document.createElement('div');
       card.className = 'project-card';
+      card.setAttribute('role', 'button');
+      card.setAttribute('tabindex', '0');
       // Apply a color tint class if the user picked one
       if (p.color) card.classList.add('color-' + p.color);
       const specsLine = buildSpecsLine(p);
       const icon = p.icon || '📁';
       card.innerHTML = `
+        <button class="project-card-edit-btn" type="button" aria-label="Edit project">✎</button>
         <div class="project-folder"></div>
         <div class="project-name"></div>
         <div class="project-meta">
@@ -2085,6 +2124,18 @@
       card.querySelector('.project-name').textContent = p.name;
       if (specsLine) card.querySelector('.project-specs').textContent = specsLine;
       card.addEventListener('click', () => openProject(p.id));
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openProject(p.id);
+        }
+      });
+      // Edit button: stop the click from bubbling to the card so we don't
+      // open the project while opening the edit modal.
+      card.querySelector('.project-card-edit-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        openEditProjectModal(p.id);
+      });
       grid.appendChild(card);
     });
     list.innerHTML = '';
@@ -4103,9 +4154,16 @@
 
   // ------- Edit project modal (name + icon + color) -------
   const editProjectModal = document.getElementById('edit-project-modal');
+  // Tracks which project the modal is editing. Decoupled from currentProjectId
+  // so the modal can be opened from the home grid too, not just from inside a project.
+  let editingProjectId = null;
+
+  function getEditingProject() {
+    return projects.find(x => x.id === editingProjectId);
+  }
 
   function syncEditProjectPickers() {
-    const p = getCurrentProject();
+    const p = getEditingProject();
     if (!p) return;
     const icon = p.icon || '📁';
     const color = p.color || '';
@@ -4117,54 +4175,69 @@
     });
   }
 
-  function openEditProjectModal() {
-    const p = getCurrentProject();
+  function openEditProjectModal(projectId) {
+    // If no id is passed (the in-project Edit button), default to the open project
+    editingProjectId = projectId || currentProjectId;
+    const p = getEditingProject();
     if (!p) return;
     document.getElementById('ep-name').value = p.name || '';
     syncEditProjectPickers();
     editProjectModal.classList.add('open');
   }
 
-  document.getElementById('edit-project-btn').addEventListener('click', openEditProjectModal);
+  // Refresh whichever views are visible after a project edit, so cards
+  // and the detail title reflect the change immediately.
+  function afterEditProjectSave(updatedProject) {
+    if (editingProjectId === currentProjectId) {
+      document.getElementById('detail-title').textContent = updatedProject.name;
+    }
+    if (!document.getElementById('home-view').classList.contains('hidden')) {
+      renderHome();
+    }
+  }
+
+  document.getElementById('edit-project-btn').addEventListener('click', () => openEditProjectModal());
   document.getElementById('ep-close').addEventListener('click', () => editProjectModal.classList.remove('open'));
   editProjectModal.addEventListener('click', (e) => { if (e.target === editProjectModal) editProjectModal.classList.remove('open'); });
 
-  // Name field: debounced save + live update of the project title in the header
+  // Name field: debounced save + live update wherever the name is displayed
   const epNameEl = document.getElementById('ep-name');
   let epNameTimer = null;
   epNameEl.addEventListener('input', () => {
-    if (!currentProjectId) return;
+    if (!editingProjectId) return;
     clearTimeout(epNameTimer);
     epNameTimer = setTimeout(() => {
-      const p = getCurrentProject();
+      const p = getEditingProject();
       if (!p) return;
       const newName = epNameEl.value.trim();
-      if (!newName) return; // ignore empty; revert happens when user types again
+      if (!newName) return; // ignore empty; user can keep typing
       p.name = newName;
       saveProjects(projects);
-      document.getElementById('detail-title').textContent = newName;
+      afterEditProjectSave(p);
     }, 400);
   });
 
-  // Icon picker: tap any emoji → save + reflect on the home card next return
+  // Icon picker: tap any emoji → save + refresh visible views
   document.querySelectorAll('#ep-icon-picker .appearance-option').forEach(btn => {
     btn.addEventListener('click', () => {
-      const p = getCurrentProject();
+      const p = getEditingProject();
       if (!p) return;
       p.icon = btn.dataset.icon;
       saveProjects(projects);
       syncEditProjectPickers();
+      afterEditProjectSave(p);
     });
   });
 
   // Color picker: tap a swatch → save the named color (empty = default)
   document.querySelectorAll('#ep-color-picker .appearance-option').forEach(btn => {
     btn.addEventListener('click', () => {
-      const p = getCurrentProject();
+      const p = getEditingProject();
       if (!p) return;
       p.color = btn.dataset.color || null;
       saveProjects(projects);
       syncEditProjectPickers();
+      afterEditProjectSave(p);
     });
   });
 
