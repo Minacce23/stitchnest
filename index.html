@@ -58,7 +58,7 @@
     margin: 0;
     padding: 0;
     height: 100%;
-    background: var(--bg);
+    background-color: var(--bg);
     color: var(--ink);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
     overscroll-behavior: none;
@@ -67,6 +67,57 @@
        job iOS actually respects: allow scrolling, block native pinch + double-tap
        zoom. The PDF area re-enables custom pinch via its own handler. */
     touch-action: pan-x pan-y;
+  }
+
+  /* Home background patterns (set via body.bg-* class). Same selectors apply
+     to the small preview tiles in Settings so they show the same texture. */
+  body.bg-dots,
+  .bg-preview-option.bg-dots {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20'><circle cx='10' cy='10' r='1.2' fill='rgba(74,110,90,0.3)'/></svg>");
+  }
+  body.theme-dark.bg-dots,
+  body.theme-dark .bg-preview-option.bg-dots {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20'><circle cx='10' cy='10' r='1.2' fill='rgba(247,244,213,0.18)'/></svg>");
+  }
+
+  body.bg-knit,
+  .bg-preview-option.bg-knit {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='8'><path d='M 0 6 L 4 2 L 8 6 L 12 2 L 16 6' stroke='rgba(74,110,90,0.25)' fill='none' stroke-width='1.4' stroke-linecap='round'/></svg>");
+  }
+  body.theme-dark.bg-knit,
+  body.theme-dark .bg-preview-option.bg-knit {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='8'><path d='M 0 6 L 4 2 L 8 6 L 12 2 L 16 6' stroke='rgba(247,244,213,0.16)' fill='none' stroke-width='1.4' stroke-linecap='round'/></svg>");
+  }
+
+  body.bg-sprouts,
+  .bg-preview-option.bg-sprouts {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><ellipse cx='13' cy='17' rx='3' ry='6' fill='rgba(132,153,88,0.28)' transform='rotate(-25 13 17)'/><ellipse cx='19' cy='17' rx='3' ry='6' fill='rgba(132,153,88,0.28)' transform='rotate(25 19 17)'/></svg>");
+  }
+  body.theme-dark.bg-sprouts,
+  body.theme-dark .bg-preview-option.bg-sprouts {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><ellipse cx='13' cy='17' rx='3' ry='6' fill='rgba(168,188,114,0.22)' transform='rotate(-25 13 17)'/><ellipse cx='19' cy='17' rx='3' ry='6' fill='rgba(168,188,114,0.22)' transform='rotate(25 19 17)'/></svg>");
+  }
+
+  /* Preview tiles in the Settings background picker */
+  .bg-preview-option {
+    width: 56px;
+    height: 56px;
+    border: 2px solid var(--line);
+    border-radius: 12px;
+    cursor: pointer;
+    padding: 0;
+    background-color: var(--bg);
+    background-repeat: repeat;
+    flex-shrink: 0;
+  }
+  .bg-preview-option:active { transform: scale(0.94); }
+  .bg-preview-option.active {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+  body.access-large .bg-preview-option {
+    width: 64px;
+    height: 64px;
   }
   body {
     display: flex;
@@ -1897,6 +1948,18 @@
         </div>
       </div>
       <div class="settings-item">
+        <div class="settings-item-main" style="width:100%">
+          <div class="settings-item-title">Background pattern</div>
+          <div class="settings-item-desc">Adds a subtle texture behind the app. Plain is the cleanest, the others lean fiber-craft.</div>
+          <div class="appearance-picker" id="bg-picker" style="margin-top:10px;margin-bottom:0">
+            <button type="button" class="bg-preview-option bg-plain" data-bg="plain" title="Plain"></button>
+            <button type="button" class="bg-preview-option bg-dots" data-bg="dots" title="Dots"></button>
+            <button type="button" class="bg-preview-option bg-knit" data-bg="knit" title="Knit"></button>
+            <button type="button" class="bg-preview-option bg-sprouts" data-bg="sprouts" title="Sprouts"></button>
+          </div>
+        </div>
+      </div>
+      <div class="settings-item">
         <div class="settings-item-main">
           <div class="settings-item-title">Continuous scroll PDFs</div>
           <div class="settings-item-desc">Scroll through every page of the pattern instead of tapping next / previous. Drawing, pinch zoom, and saved strokes still work on each page.</div>
@@ -2012,13 +2075,16 @@
     try {
       const stored = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
       const theme = ['auto', 'light', 'dark'].includes(stored.theme) ? stored.theme : 'auto';
+      const validBgs = ['plain', 'dots', 'knit', 'sprouts'];
+      const homeBg = validBgs.includes(stored.homeBg) ? stored.homeBg : 'plain';
       return {
         largerText: !!stored.largerText,
         scrollMode: !!stored.scrollMode,
         theme,
+        homeBg,
       };
     } catch {
-      return { largerText: false, scrollMode: false, theme: 'auto' };
+      return { largerText: false, scrollMode: false, theme: 'auto', homeBg: 'plain' };
     }
   }
   function saveSettings(s) {
@@ -3541,7 +3607,20 @@
   function applySettings() {
     document.body.classList.toggle('access-large', !!settings.largerText);
     document.body.classList.toggle('scroll-mode', !!settings.scrollMode);
+    applyHomeBg();
     applyTheme();
+  }
+
+  function applyHomeBg() {
+    // Strip any existing bg-* class then add the current one
+    document.body.classList.remove('bg-plain', 'bg-dots', 'bg-knit', 'bg-sprouts');
+    document.body.classList.add('bg-' + (settings.homeBg || 'plain'));
+  }
+
+  function syncBgPickerUI() {
+    document.querySelectorAll('#bg-picker .bg-preview-option').forEach(b => {
+      b.classList.toggle('active', b.dataset.bg === settings.homeBg);
+    });
   }
 
   function syncThemePickerUI() {
@@ -3555,6 +3634,7 @@
     document.getElementById('set-larger-text').checked = !!settings.largerText;
     document.getElementById('set-scroll-mode').checked = !!settings.scrollMode;
     syncThemePickerUI();
+    syncBgPickerUI();
     settingsModal.classList.add('open');
   }
   document.getElementById('settings-close').addEventListener('click', () => settingsModal.classList.remove('open'));
@@ -3588,6 +3668,20 @@
       syncThemePickerUI();
       applyTheme();
       const labels = { auto: 'System theme', light: 'Light theme', dark: 'Dark theme' };
+      toast(labels[choice]);
+    });
+  });
+
+  // Home background picker tiles (Plain / Dots / Knit / Sprouts)
+  document.querySelectorAll('#bg-picker .bg-preview-option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const choice = btn.dataset.bg;
+      if (!['plain', 'dots', 'knit', 'sprouts'].includes(choice)) return;
+      settings.homeBg = choice;
+      saveSettings(settings);
+      syncBgPickerUI();
+      applyHomeBg();
+      const labels = { plain: 'Plain background', dots: 'Dots background', knit: 'Knit background', sprouts: 'Sprouts background' };
       toast(labels[choice]);
     });
   });
