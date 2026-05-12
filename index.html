@@ -2142,6 +2142,47 @@
   let currentScale = 1.2;
   let pendingPdfFile = null;
 
+  // ------- Native iOS bridge (Live Activity) -------
+  // When running inside the native iOS WKWebView shell, the host exposes
+  // a "stitchActivity" message handler. We use it to start, update, and
+  // end a Live Activity that mirrors the row counter on the lock screen.
+  // Outside the iOS shell (web browser, installed PWA), every call here is
+  // a no-op so the same code runs everywhere unchanged.
+  const isNativeIOS = () => !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.stitchActivity);
+  function notifyNativeActivity(action, payload) {
+    if (!isNativeIOS()) return;
+    try {
+      window.webkit.messageHandlers.stitchActivity.postMessage(Object.assign({ action }, payload || {}));
+    } catch (err) {
+      console.warn('Live Activity bridge failed:', err);
+    }
+  }
+  // Exposed for the native side to push counter changes back into the PWA
+  // when the user taps + / − on the Live Activity itself.
+  window.stitchnest = window.stitchnest || {};
+  window.stitchnest.setRowCount = function (newRows) {
+    if (!currentProjectId) return;
+    const p = projects.find(x => x.id === currentProjectId);
+    if (!p) return;
+    const n = Math.max(0, parseInt(newRows, 10) || 0);
+    p.rows = n;
+    saveProjects(projects);
+    const rowCountEl = document.getElementById('row-count');
+    if (rowCountEl) rowCountEl.textContent = n;
+    if (typeof renderActionRows === 'function') renderActionRows();
+    if (typeof updateActionAlert === 'function') updateActionAlert();
+  };
+  window.stitchnest.setStitchCount = function (newStitches) {
+    if (!currentProjectId) return;
+    const p = projects.find(x => x.id === currentProjectId);
+    if (!p) return;
+    const n = Math.max(0, parseInt(newStitches, 10) || 0);
+    p.stitches = n;
+    saveProjects(projects);
+    const stitchCountEl = document.getElementById('stitch-count');
+    if (stitchCountEl) stitchCountEl.textContent = n;
+  };
+
   // ------- Toast -------
   const toastEl = document.getElementById('toast');
   let toastTimer;
@@ -2210,6 +2251,9 @@
 
   // ------- View routing -------
   function showHome() {
+    // Tell the native shell to end any in-flight Live Activity since we
+    // no longer have an open project to mirror on the lock screen.
+    notifyNativeActivity('end');
     currentProjectId = null;
     currentPdfDoc = null;
     document.getElementById('home-view').classList.remove('hidden');
@@ -2225,6 +2269,14 @@
     const p = projects.find(x => x.id === id);
     if (!p) return;
     currentProjectId = id;
+    // Spin up a Live Activity for the lock screen / Dynamic Island. No-op
+    // outside the native iOS shell.
+    notifyNativeActivity('start', {
+      name: p.name || 'Project',
+      icon: p.icon || '📁',
+      rows: p.rows || 0,
+      stitches: p.stitches || 0,
+    });
     document.getElementById('home-view').classList.add('hidden');
     document.getElementById('detail-view').classList.remove('hidden');
     document.getElementById('back-btn').style.display = 'inline-block';
@@ -2784,6 +2836,7 @@
       updateActionAlert();
       maybeBuzz();
     }
+    notifyNativeActivity('update', { rows: p.rows || 0, stitches: p.stitches || 0 });
   }
   function resetCount(field) {
     const p = projects.find(x => x.id === currentProjectId);
@@ -2795,6 +2848,7 @@
       renderActionRows();
       updateActionAlert();
     }
+    notifyNativeActivity('update', { rows: p.rows || 0, stitches: p.stitches || 0 });
   }
 
   document.querySelectorAll('[data-action]').forEach(btn => {
