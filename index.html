@@ -112,6 +112,9 @@
     flex: 1;
     padding: 16px;
     overflow-y: auto;
+    /* Pin to vertical scrolling only — a wide element should never make the
+       whole page scrollable horizontally. */
+    overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
   }
 
@@ -1106,9 +1109,14 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    /* Critical: allow this flex row to shrink below its content's natural width.
+       Without this the row pushes the page wider than the screen on narrow phones. */
+    min-width: 0;
   }
   .swatch-num {
-    flex: 0 0 80px;
+    flex: 1 1 60px; /* basis 60px, can grow into available space or shrink */
+    min-width: 0;
+    width: 0;       /* lets the input share space evenly with siblings */
     border: 1px solid var(--line);
     background: var(--surface-2);
     border-radius: 8px;
@@ -1127,6 +1135,7 @@
     color: var(--ink-soft);
     font-size: 13px;
     white-space: nowrap;
+    flex-shrink: 0;
   }
   .swatch-area-select {
     appearance: none;
@@ -1139,12 +1148,13 @@
     font-family: inherit;
     font-size: 14px;
     color: var(--ink);
-    min-width: 75px;
+    flex-shrink: 0;
   }
   .swatch-area-mirror {
     color: var(--ink-soft);
     font-size: 13px;
     font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
   }
 
   /* Comparison panel that appears once both gauges are known */
