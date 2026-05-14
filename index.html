@@ -204,10 +204,19 @@
   .empty h2 { margin: 0 0 6px; font-family: inherit; font-size: 24px; font-weight: 700; letter-spacing: -0.4px; color: var(--ink); }
   .empty p { margin: 0; font-size: 15px; line-height: 1.5; max-width: 280px; margin-left: auto; margin-right: auto; }
 
+  .home-section-header {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    margin: 4px 4px 14px;
+    letter-spacing: -0.1px;
+  }
+  body.access-large .home-section-header { font-size: 16px; }
+
   .project-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    gap: 14px;
   }
   @media (min-width: 480px) {
     .project-grid { grid-template-columns: 1fr 1fr 1fr; }
@@ -266,10 +275,11 @@
     line-height: 1;
   }
   .project-name {
-    font-weight: 600;
-    font-size: 15px;
+    font-weight: 700;
+    font-size: 17px;
     color: var(--ink);
-    line-height: 1.25;
+    line-height: 1.2;
+    letter-spacing: -0.2px;
     overflow: hidden;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -279,13 +289,14 @@
     font-size: 12px;
     color: var(--ink-soft);
     margin-top: auto;
+    font-weight: 500;
   }
   .project-specs {
     font-size: 11px;
     color: var(--sage);
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: 0;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -380,26 +391,32 @@
   .detect-toast.show { opacity: 1; }
 
   /* FAB */
-  .fab {
-    position: fixed;
-    right: max(20px, calc(50% - 320px + 20px));
-    bottom: 24px;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
+  /* FAB is hidden — the header + button replaces it. Kept the class for
+     backwards compatibility but display: none. */
+  .fab { display: none !important; }
+
+  /* Header + button (top-right on home view). Bigger, on-brand, replaces the FAB. */
+  .header-add-btn {
     background: var(--accent);
     color: white;
     border: none;
-    font-size: 30px;
-    font-weight: 300;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border-radius: 50%;
+    font-size: 24px;
+    font-weight: 400;
     line-height: 1;
-    cursor: pointer;
-    box-shadow: 0 4px 16px rgba(211, 150, 140, 0.45);
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 2px 6px rgba(211, 150, 140, 0.35);
   }
-  .fab:active { transform: scale(0.94); }
+  .header-add-btn:active {
+    background: var(--accent);
+    transform: scale(0.92);
+  }
+  body.access-large .header-add-btn { width: 44px; height: 44px; font-size: 28px; }
 
   /* Project detail */
   .detail-header {
@@ -1745,10 +1762,10 @@
 
 <header class="app-bar">
   <button class="icon-btn" id="back-btn" style="display:none">‹ Back</button>
-  <button class="icon-btn" id="menu-btn" title="Backup & restore">⋯</button>
+  <button class="icon-btn" id="menu-btn" title="Menu">⋯</button>
   <div class="app-title">stitchnest<span class="dot">.</span></div>
   <button class="icon-btn" id="delete-btn" style="display:none">Delete</button>
-  <span id="header-spacer" style="width:60px"></span>
+  <button class="icon-btn header-add-btn" id="header-add-btn" title="New project" aria-label="New project">＋</button>
 </header>
 
 <main id="main">
@@ -2465,10 +2482,17 @@
         <div class="empty">
           <div class="yarn">🧶</div>
           <h2>No projects yet</h2>
-          <p>Tap the + button to start your first project.</p>
+          <p>Tap the + button up top to start your first project.</p>
         </div>`;
       return;
     }
+    list.innerHTML = '';
+    const sectionHeader = document.createElement('div');
+    sectionHeader.className = 'home-section-header';
+    sectionHeader.textContent = projects.length === 1
+      ? 'Your project'
+      : `Your projects · ${projects.length}`;
+    list.appendChild(sectionHeader);
     const grid = document.createElement('div');
     grid.className = 'project-grid';
     projects.forEach(p => {
@@ -2509,7 +2533,6 @@
       });
       grid.appendChild(card);
     });
-    list.innerHTML = '';
     list.appendChild(grid);
   }
 
@@ -2525,8 +2548,8 @@
     document.getElementById('back-btn').style.display = 'none';
     document.getElementById('delete-btn').style.display = 'none';
     document.getElementById('menu-btn').style.display = 'inline-block';
-    document.getElementById('header-spacer').style.display = 'inline-block';
-    document.getElementById('add-project-btn').style.display = 'flex';
+    document.getElementById('header-add-btn').style.display = 'flex';
+    document.getElementById('add-project-btn').style.display = 'none';
     renderHome();
   }
   async function openProject(id) {
@@ -2548,7 +2571,7 @@
     // Keep the ⋯ menu reachable inside a project so Settings / My People /
     // Backup are one tap away, no need to navigate back to home first.
     document.getElementById('menu-btn').style.display = 'inline-block';
-    document.getElementById('header-spacer').style.display = 'none';
+    document.getElementById('header-add-btn').style.display = 'none';
     document.getElementById('add-project-btn').style.display = 'none';
 
     document.getElementById('detail-title').textContent = p.name;
@@ -3145,6 +3168,7 @@
   function closeModal() { modal.classList.remove('open'); }
 
   document.getElementById('add-project-btn').addEventListener('click', openModal);
+  document.getElementById('header-add-btn').addEventListener('click', openModal);
   document.getElementById('np-cancel').addEventListener('click', closeModal);
   modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 
