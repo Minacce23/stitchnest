@@ -205,8 +205,10 @@
     position: relative;
   }
   /* Soft pastel blob behind the big emoji — pure decoration, gives the
-     empty state a hand-illustrated feel instead of a clinical placeholder. */
-  .empty::before {
+     home empty state a hand-illustrated feel instead of a clinical placeholder.
+     Scoped to #project-list so the same `.empty` modifier class on the Person
+     dropdown's empty-state box doesn't pick up this decoration too. */
+  #project-list > .empty::before {
     content: "";
     position: absolute;
     width: 180px;
@@ -219,7 +221,7 @@
     opacity: 0.85;
     z-index: 0;
   }
-  body.theme-dark .empty::before { background: var(--sage-soft); opacity: 0.5; }
+  body.theme-dark #project-list > .empty::before { background: var(--sage-soft); opacity: 0.5; }
   .empty .yarn,
   .empty h2,
   .empty p {
@@ -2285,6 +2287,8 @@
     <h3>New project</h3>
     <label for="np-name">Project name</label>
     <input type="text" id="np-name" placeholder="e.g. Cabled cardigan" autocomplete="off" />
+    <label for="np-start-date">Start date</label>
+    <input type="date" id="np-start-date" />
     <label>Pattern (optional)</label>
     <label class="file-picker" id="np-file-picker">
       <span id="np-file-label">Tap to choose a PDF</span>
@@ -2381,6 +2385,11 @@
       <button class="craft-type-option" type="button" data-craft="embroidery">Embroidery</button>
       <button class="craft-type-option" type="button" data-craft="cross_stitch">Cross stitch</button>
     </div>
+
+    <label for="ep-start-date">Start date</label>
+    <input type="date" id="ep-start-date" />
+    <label for="ep-finish-date">Finish date <span style="color: var(--ink-soft); font-weight: 400; font-size: 12px;">(once you're done)</span></label>
+    <input type="date" id="ep-finish-date" />
 
     <div class="modal-actions">
       <button class="btn btn-secondary" id="ep-close" style="width:100%">Done</button>
@@ -3026,7 +3035,11 @@
         <div class="project-card-info">
           <div class="project-name"></div>
           <div class="project-meta">
-            ${p.hasPdf ? 'pattern' : 'no pattern'} · ${p.rows || 0} rows
+            ${p.hasPdf ? 'pattern' : 'no pattern'} · ${p.rows || 0} rows${(() => {
+              const dur = getDurationInfo(p);
+              if (!dur) return '';
+              return ` · ${dur.isFinished ? `${dur.days} days` : `Day ${dur.days}`}`;
+            })()}
           </div>
           ${specsLine ? `<div class="project-specs"></div>` : ''}
         </div>`;
@@ -3090,8 +3103,18 @@
     document.getElementById('add-project-btn').style.display = 'none';
 
     document.getElementById('detail-title').textContent = p.name;
-    document.getElementById('detail-sub').textContent =
-      'Created ' + new Date(p.createdAt).toLocaleDateString();
+    {
+      const dur = getDurationInfo(p);
+      let sub;
+      if (dur && dur.isFinished) {
+        sub = `Started ${dur.startLabel} · Finished ${dur.finishLabel} · ${dur.days} days`;
+      } else if (dur) {
+        sub = `Started ${dur.startLabel} · Day ${dur.days}`;
+      } else {
+        sub = 'Created ' + new Date(p.createdAt).toLocaleDateString();
+      }
+      document.getElementById('detail-sub').textContent = sub;
+    }
     document.getElementById('stitch-count').textContent = p.stitches || 0;
     document.getElementById('row-count').textContent = p.rows || 0;
     document.getElementById('notes-textarea').value = p.notes || '';
@@ -3864,11 +3887,53 @@
     });
   });
 
+  // ------- Project date helpers -------
+  //
+  // Both startDate and finishDate are stored as plain `YYYY-MM-DD` strings in
+  // LOCAL time (no timezone, no hours). The user thinks in calendar days, not
+  // instants. `getDurationInfo()` computes Day N or total-days for displaying
+  // anywhere we want to surface "how long has this been going."
+
+  function projectIsoDay(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${dd}`;
+  }
+  function todayIsoDay() { return projectIsoDay(new Date()); }
+  function parseLocalIsoDay(s) {
+    if (!s) return null;
+    const [y, m, d] = s.split('-').map(Number);
+    if (!y || !m || !d) return null;
+    return new Date(y, m - 1, d);
+  }
+  function formatProjectDate(s) {
+    const d = parseLocalIsoDay(s);
+    if (!d) return '';
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+  function getDurationInfo(p) {
+    if (!p || !p.startDate) return null;
+    const start = parseLocalIsoDay(p.startDate);
+    if (!start) return null;
+    const end = p.finishDate ? parseLocalIsoDay(p.finishDate) : new Date();
+    end.setHours(0, 0, 0, 0);
+    start.setHours(0, 0, 0, 0);
+    const days = Math.floor((end - start) / 86400000) + 1; // include start day
+    return {
+      days: Math.max(1, days),
+      isFinished: !!p.finishDate,
+      startLabel: formatProjectDate(p.startDate),
+      finishLabel: p.finishDate ? formatProjectDate(p.finishDate) : null,
+    };
+  }
+
   // ------- Modal -------
   const modal = document.getElementById('new-project-modal');
   function openModal() {
     pendingPdfFile = null;
     document.getElementById('np-name').value = '';
+    document.getElementById('np-start-date').value = todayIsoDay();
     document.getElementById('np-file').value = '';
     document.getElementById('np-file-label').textContent = 'Tap to choose a PDF';
     document.getElementById('np-file-picker').classList.remove('has-file');
@@ -3899,6 +3964,8 @@
       id,
       name,
       createdAt: Date.now(),
+      startDate: document.getElementById('np-start-date').value || todayIsoDay(),
+      finishDate: null,
       stitches: 0,
       rows: 0,
       hasPdf: false,
@@ -5346,6 +5413,8 @@
     const p = getEditingProject();
     if (!p) return;
     document.getElementById('ep-name').value = p.name || '';
+    document.getElementById('ep-start-date').value = p.startDate || '';
+    document.getElementById('ep-finish-date').value = p.finishDate || '';
     syncEditProjectPickers();
     editProjectModal.classList.add('open');
   }
@@ -5417,6 +5486,22 @@
       syncEditProjectPickers();
       afterEditProjectSave(p);
     });
+  });
+
+  // Start + finish date inputs: save on change. Empty finishDate = still in progress.
+  document.getElementById('ep-start-date').addEventListener('change', (e) => {
+    const p = getEditingProject();
+    if (!p) return;
+    p.startDate = e.target.value || null;
+    saveProjects(projects);
+    afterEditProjectSave(p);
+  });
+  document.getElementById('ep-finish-date').addEventListener('change', (e) => {
+    const p = getEditingProject();
+    if (!p) return;
+    p.finishDate = e.target.value || null;
+    saveProjects(projects);
+    afterEditProjectSave(p);
   });
 
   // ------- Project details sheet -------
