@@ -225,31 +225,50 @@
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 22px;
-    padding: 20px 18px;
+    padding: 0;
     cursor: pointer;
     transition: transform 0.1s ease, box-shadow 0.1s ease;
     box-shadow: var(--shadow);
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    min-height: 150px;
+    min-height: 190px;
     text-align: left;
     font-family: inherit;
+    overflow: hidden;
     /* Anchor for the per-card edit button */
     position: relative;
   }
   .project-card:active { transform: scale(0.97); }
+  /* Colored top zone where the folder icon lives. Default is a soft sage tint
+     so cards still feel alive even without a custom color. */
+  .project-card-icon-area {
+    height: 110px;
+    flex-shrink: 0;
+    background: var(--sage-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .project-card-info {
+    flex: 1;
+    padding: 14px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: var(--surface);
+  }
   .project-card-edit-btn {
     position: absolute;
-    top: 6px;
-    right: 6px;
+    top: 8px;
+    right: 8px;
     width: 30px;
     height: 30px;
     border: none;
-    background: transparent;
+    background: rgba(255, 255, 255, 0.7);
     border-radius: 50%;
-    color: var(--ink-soft);
-    font-size: 15px;
+    color: var(--ink);
+    font-size: 14px;
     cursor: pointer;
     padding: 0;
     display: flex;
@@ -257,13 +276,16 @@
     justify-content: center;
     line-height: 1;
     font-family: inherit;
-    opacity: 0.65;
+    box-shadow: 0 1px 3px rgba(10, 51, 35, 0.1);
+    z-index: 2;
   }
   .project-card-edit-btn:active {
-    background: var(--accent-soft);
-    color: var(--accent);
-    opacity: 1;
-    transform: scale(0.94);
+    background: white;
+    transform: scale(0.92);
+  }
+  body.theme-dark .project-card-edit-btn {
+    background: rgba(0, 0, 0, 0.4);
+    color: var(--ink);
   }
   body.access-large .project-card-edit-btn {
     width: 36px;
@@ -271,8 +293,23 @@
     font-size: 17px;
   }
   .project-folder {
-    font-size: 44px;
     line-height: 1;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .project-folder svg {
+    width: 58px;
+    height: 58px;
+    stroke: currentColor;
+  }
+  /* Icon picker buttons in Edit Project modal */
+  .appearance-option svg {
+    width: 26px;
+    height: 26px;
+    stroke: currentColor;
+    color: var(--ink);
   }
   .project-name {
     font-weight: 700;
@@ -459,21 +496,22 @@
   }
   .edit-project-btn:active { background: var(--accent-soft); }
 
-  /* Project home cards: color variants (light tints in light mode, dark tints in dark mode) */
-  .project-card.color-sage { background: #DCE3C1; }
-  .project-card.color-rose { background: #F5DBD4; }
-  .project-card.color-terracotta { background: #ECD0C7; }
-  .project-card.color-blue { background: #D0DAE8; }
-  .project-card.color-mustard { background: #E8DAB0; }
-  .project-card.color-lavender { background: #D8C8E0; }
-  .project-card.color-mint { background: #C8E0D5; }
-  body.theme-dark .project-card.color-sage { background: #2A3D28; }
-  body.theme-dark .project-card.color-rose { background: #3D2A28; }
-  body.theme-dark .project-card.color-terracotta { background: #3D2C26; }
-  body.theme-dark .project-card.color-blue { background: #1F2D3D; }
-  body.theme-dark .project-card.color-mustard { background: #3D3520; }
-  body.theme-dark .project-card.color-lavender { background: #2D2538; }
-  body.theme-dark .project-card.color-mint { background: #1F3530; }
+  /* Project home cards: color variants paint the TOP icon area, not the whole
+     card. Card body stays clean white/surface so text reads cleanly. */
+  .project-card.color-sage .project-card-icon-area { background: #DCE3C1; }
+  .project-card.color-rose .project-card-icon-area { background: #F5DBD4; }
+  .project-card.color-terracotta .project-card-icon-area { background: #ECD0C7; }
+  .project-card.color-blue .project-card-icon-area { background: #D0DAE8; }
+  .project-card.color-mustard .project-card-icon-area { background: #E8DAB0; }
+  .project-card.color-lavender .project-card-icon-area { background: #D8C8E0; }
+  .project-card.color-mint .project-card-icon-area { background: #C8E0D5; }
+  body.theme-dark .project-card.color-sage .project-card-icon-area { background: #2A3D28; }
+  body.theme-dark .project-card.color-rose .project-card-icon-area { background: #3D2A28; }
+  body.theme-dark .project-card.color-terracotta .project-card-icon-area { background: #3D2C26; }
+  body.theme-dark .project-card.color-blue .project-card-icon-area { background: #1F2D3D; }
+  body.theme-dark .project-card.color-mustard .project-card-icon-area { background: #3D3520; }
+  body.theme-dark .project-card.color-lavender .project-card-icon-area { background: #2D2538; }
+  body.theme-dark .project-card.color-mint .project-card-icon-area { background: #1F3530; }
 
   /* Appearance pickers (icon + color) inside the Edit project modal */
   .appearance-picker {
@@ -1943,16 +1981,17 @@
 
     <label>Folder icon</label>
     <div class="appearance-picker" id="ep-icon-picker">
-      <button class="appearance-option" type="button" data-icon="📁">📁</button>
-      <button class="appearance-option" type="button" data-icon="🧶">🧶</button>
-      <button class="appearance-option" type="button" data-icon="🧵">🧵</button>
-      <button class="appearance-option" type="button" data-icon="🧥">🧥</button>
-      <button class="appearance-option" type="button" data-icon="🧦">🧦</button>
-      <button class="appearance-option" type="button" data-icon="🧤">🧤</button>
-      <button class="appearance-option" type="button" data-icon="🎩">🎩</button>
-      <button class="appearance-option" type="button" data-icon="👕">👕</button>
-      <button class="appearance-option" type="button" data-icon="⭐">⭐</button>
-      <button class="appearance-option" type="button" data-icon="💜">💜</button>
+      <button class="appearance-option" type="button" data-icon="folder" aria-label="Folder"></button>
+      <button class="appearance-option" type="button" data-icon="yarn" aria-label="Yarn ball"></button>
+      <button class="appearance-option" type="button" data-icon="spool" aria-label="Spool"></button>
+      <button class="appearance-option" type="button" data-icon="sweater" aria-label="Sweater"></button>
+      <button class="appearance-option" type="button" data-icon="sock" aria-label="Sock"></button>
+      <button class="appearance-option" type="button" data-icon="mitten" aria-label="Mitten"></button>
+      <button class="appearance-option" type="button" data-icon="hat" aria-label="Hat"></button>
+      <button class="appearance-option" type="button" data-icon="shirt" aria-label="Shirt"></button>
+      <button class="appearance-option" type="button" data-icon="star" aria-label="Star"></button>
+      <button class="appearance-option" type="button" data-icon="heart" aria-label="Heart"></button>
+      <button class="appearance-option" type="button" data-icon="sprout" aria-label="Sprout"></button>
     </div>
 
     <label>Folder color</label>
@@ -2423,6 +2462,51 @@
   let currentScale = 1.2;
   let pendingPdfFile = null;
 
+  // ------- Icon set -------
+  // Outlined SVG icons used on project cards and in the Edit Project picker.
+  // All share viewBox 24×24, stroke 2, currentColor — so they inherit text
+  // color via CSS and look right in both light and dark themes.
+  const ICONS = {
+    folder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5a2 2 0 0 1 2-2h3.2a2 2 0 0 1 1.4.6L12 6.5h6a2 2 0 0 1 2 2v8.5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6.5z"/></svg>',
+    yarn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="12" r="8"/><path d="M4.5 8.5c2-1 4.5 0 6.5 3s4.5 4 6.5 3"/><path d="M4.5 15.5c2 1 4.5 0 6.5-3s4.5-4 6.5-3"/><path d="M17 17l3.5 3.5"/></svg>',
+    spool: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h14M5 20h14M7 4v16M17 4v16"/><path d="M9 8l6 8M15 8l-6 8" stroke-width="1.4"/></svg>',
+    sweater: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 4 4 9l3 1.5V20a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-9.5L20 9l-2.5-5h-3l-2.5 1.5L9.5 4z"/><path d="M10 11h4"/></svg>',
+    sock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2.5v10.5L6 16a3 3 0 0 0 2 5l7-3 4-4-3-3V2.5z"/><path d="M9 7h6"/></svg>',
+    mitten: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9a4.5 4.5 0 0 1 9 0v10a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1v-3H5a1 1 0 0 1-1-1v-2.5a1 1 0 0 1 1-1h2V9z"/><path d="M7 17h9"/></svg>',
+    hat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17a7 7 0 0 1 14 0"/><rect x="3.5" y="17" width="17" height="3.5" rx="1.5"/><circle cx="12" cy="4" r="1.5"/><path d="M12 5.5V10"/></svg>',
+    shirt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 3 3.5 7.5l2.2 3.7 3-1V20a1 1 0 0 0 1 1h4.6a1 1 0 0 0 1-1v-9.8l3 1 2.2-3.7L15.5 3l-2.5 1.7a1.8 1.8 0 0 1-2 0z"/></svg>',
+    star: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 3 14.9 9.4 22 10.3 16.8 15.1 18.1 22 12 18.7 5.9 22 7.2 15.1 2 10.3 9.1 9.4"/></svg>',
+    heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5 4.7 13c-2-2.2-2-5.7 0-7.8a4.7 4.7 0 0 1 7 0L12 6l.3-.8a4.7 4.7 0 0 1 7 0c2 2.1 2 5.6 0 7.8z"/></svg>',
+    sprout: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V10"/><path d="M12 13a5 5 0 0 0-5-5H4.5v2A5 5 0 0 0 9.5 15h2.5"/><path d="M12 11a5 5 0 0 1 5-5h2.5v2A5 5 0 0 1 14.5 13H12"/></svg>',
+  };
+
+  // Maps the legacy emoji values from earlier versions to the new icon names.
+  // Existing projects keep working without a data migration.
+  const EMOJI_TO_ICON = {
+    '📁': 'folder', '🧶': 'yarn', '🧵': 'spool', '🧥': 'sweater',
+    '🧦': 'sock', '🧤': 'mitten', '🎩': 'hat', '👕': 'shirt',
+    '⭐': 'star', '💜': 'heart',
+  };
+
+  function resolveIconName(value) {
+    if (!value) return 'folder';
+    if (ICONS[value]) return value;
+    if (EMOJI_TO_ICON[value]) return EMOJI_TO_ICON[value];
+    return 'folder';
+  }
+  function iconHTML(value) {
+    return ICONS[resolveIconName(value)];
+  }
+
+  // Populate the Edit Project icon picker buttons with their SVGs on init
+  function populateIconPicker() {
+    document.querySelectorAll('#ep-icon-picker .appearance-option').forEach(b => {
+      const name = b.dataset.icon;
+      if (ICONS[name]) b.innerHTML = ICONS[name];
+    });
+  }
+  populateIconPicker();
+
   // ------- Native iOS bridge (Live Activity) -------
   // When running inside the native iOS WKWebView shell, the host exposes
   // a "stitchActivity" message handler. We use it to start, update, and
@@ -2503,19 +2587,22 @@
       card.className = 'project-card';
       card.setAttribute('role', 'button');
       card.setAttribute('tabindex', '0');
-      // Apply a color tint class if the user picked one
+      // Apply a color tint class if the user picked one — tints the icon area
       if (p.color) card.classList.add('color-' + p.color);
       const specsLine = buildSpecsLine(p);
-      const icon = p.icon || '📁';
       card.innerHTML = `
         <button class="project-card-edit-btn" type="button" aria-label="Edit project">✎</button>
-        <div class="project-folder"></div>
-        <div class="project-name"></div>
-        <div class="project-meta">
-          ${p.hasPdf ? '📄 pattern' : 'no pattern'} · ${p.rows || 0} rows
+        <div class="project-card-icon-area">
+          <div class="project-folder"></div>
         </div>
-        ${specsLine ? `<div class="project-specs"></div>` : ''}`;
-      card.querySelector('.project-folder').textContent = icon;
+        <div class="project-card-info">
+          <div class="project-name"></div>
+          <div class="project-meta">
+            ${p.hasPdf ? 'pattern' : 'no pattern'} · ${p.rows || 0} rows
+          </div>
+          ${specsLine ? `<div class="project-specs"></div>` : ''}
+        </div>`;
+      card.querySelector('.project-folder').innerHTML = iconHTML(p.icon);
       card.querySelector('.project-name').textContent = p.name;
       if (specsLine) card.querySelector('.project-specs').textContent = specsLine;
       card.addEventListener('click', () => openProject(p.id));
@@ -4615,7 +4702,8 @@
   function syncEditProjectPickers() {
     const p = getEditingProject();
     if (!p) return;
-    const icon = p.icon || '📁';
+    // resolveIconName handles legacy emoji values from older project data
+    const icon = resolveIconName(p.icon);
     const color = p.color || '';
     const craft = p.craftType || '';
     document.querySelectorAll('#ep-icon-picker .appearance-option').forEach(b => {
