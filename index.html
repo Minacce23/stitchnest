@@ -7,7 +7,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="stitchnest" />
 <meta name="mobile-web-app-capable" content="yes" />
-<meta name="theme-color" content="#0A3323" />
+<meta name="theme-color" content="#FBF5EE" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#2D1F22" media="(prefers-color-scheme: dark)" />
 <meta name="description" content="Pattern library, stitch and row counters, drawing on patterns, and action-row alerts for fiber crafters." />
 <link rel="manifest" href="manifest.json" />
 <link rel="apple-touch-icon" href="apple-touch-icon.png" />
@@ -17,41 +18,41 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
   :root {
-    /* Acorn & Ivy palette — stitchnest is the light-mode sibling of storysprout.
-       Same colors, flipped: cream is bg, deep forest is text, rose is the accent. */
-    --bg: #F7F4D5;            /* storysprout cream */
+    /* Peach + sage + cocoa palette — warm, modern, cottagecore-meets-clean-girl.
+       Refresh from the original cream-and-forest scheme to feel more current
+       for the young-adult fiber-craft audience. */
+    --bg: #FBF5EE;            /* cream peach */
     --surface: #FFFFFF;        /* elevated cards */
-    --surface-2: #FBF8E4;      /* tinted cream — alt surface */
-    --ink: #0A3323;            /* storysprout deep forest — primary text */
-    --ink-soft: #4A6E5A;       /* muted forest — secondary text */
-    --line: #E8E4C5;           /* warm cream border */
-    --accent: #D3968C;         /* storysprout rose — buttons & active states */
-    --accent-soft: #F2DDD5;    /* light rose tint */
-    --sage: #839958;           /* storysprout moss — secondary accent */
-    --sage-soft: #EDF1E0;      /* light moss tint */
-    --shadow: 0 1px 3px rgba(10, 51, 35, 0.07), 0 4px 16px rgba(10, 51, 35, 0.06);
-    /* Toast popover (the small notification at the bottom). High contrast
-       in both themes, so it inverts when the app flips to dark. */
-    --toast-bg: #0A3323;
-    --toast-fg: #F7F4D5;
+    --surface-2: #F8E9E2;      /* blush-tinted alt surface */
+    --ink: #3D2C26;            /* deep cocoa — primary text */
+    --ink-soft: #7A6157;       /* warm taupe — secondary text */
+    --line: #ECDDD2;           /* warm peach border */
+    --accent: #E8A095;         /* dusty rose — buttons & active states */
+    --accent-soft: #FAEBE5;    /* very pale rose tint */
+    --sage: #9DA587;           /* dusty sage — secondary accent */
+    --sage-soft: #ECEFE0;      /* very pale sage */
+    --shadow: 0 1px 3px rgba(61, 44, 38, 0.08), 0 4px 16px rgba(61, 44, 38, 0.06);
+    /* Toast popover — high contrast in both themes, inverts in dark. */
+    --toast-bg: #3D2C26;
+    --toast-fg: #FBF5EE;
   }
 
-  /* Dark theme. Mirrors storysprout's palette: cream becomes deep forest,
-     deep forest text becomes cream, accents stay the same. */
+  /* Dark theme. Deep mulled-wine bg with cream-peach text — preserves the
+     warm feeling at night without going forest-green. */
   body.theme-dark {
-    --bg: #0A3323;
-    --surface: #143E2D;
-    --surface-2: #1A4D38;
-    --ink: #F7F4D5;
-    --ink-soft: #9AB1A0;
-    --line: #265240;
-    --accent: #D3968C;
-    --accent-soft: #3A2A28;
-    --sage: #A8BC72;
-    --sage-soft: #233628;
+    --bg: #2D1F22;
+    --surface: #3A2A2E;
+    --surface-2: #4A363B;
+    --ink: #FBF5EE;
+    --ink-soft: #B59A92;
+    --line: #503A40;
+    --accent: #E8A095;
+    --accent-soft: #4A2E2D;
+    --sage: #B5BC9F;
+    --sage-soft: #2F352B;
     --shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.25);
-    --toast-bg: #F7F4D5;
-    --toast-fg: #0A3323;
+    --toast-bg: #FBF5EE;
+    --toast-fg: #3D2C26;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body {
@@ -75,29 +76,29 @@
      to the small preview tiles in Settings so they show the same texture. */
   body.bg-dots,
   .bg-preview-option.bg-dots {
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20'><circle cx='10' cy='10' r='1.2' fill='rgba(74,110,90,0.3)'/></svg>");
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20'><circle cx='10' cy='10' r='1.2' fill='rgba(122,97,87,0.3)'/></svg>");
   }
   body.theme-dark.bg-dots,
   body.theme-dark .bg-preview-option.bg-dots {
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20'><circle cx='10' cy='10' r='1.2' fill='rgba(247,244,213,0.18)'/></svg>");
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20'><circle cx='10' cy='10' r='1.2' fill='rgba(251,245,238,0.18)'/></svg>");
   }
 
   body.bg-knit,
   .bg-preview-option.bg-knit {
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='8'><path d='M 0 6 L 4 2 L 8 6 L 12 2 L 16 6' stroke='rgba(74,110,90,0.25)' fill='none' stroke-width='1.4' stroke-linecap='round'/></svg>");
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='8'><path d='M 0 6 L 4 2 L 8 6 L 12 2 L 16 6' stroke='rgba(122,97,87,0.25)' fill='none' stroke-width='1.4' stroke-linecap='round'/></svg>");
   }
   body.theme-dark.bg-knit,
   body.theme-dark .bg-preview-option.bg-knit {
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='8'><path d='M 0 6 L 4 2 L 8 6 L 12 2 L 16 6' stroke='rgba(247,244,213,0.16)' fill='none' stroke-width='1.4' stroke-linecap='round'/></svg>");
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='8'><path d='M 0 6 L 4 2 L 8 6 L 12 2 L 16 6' stroke='rgba(251,245,238,0.16)' fill='none' stroke-width='1.4' stroke-linecap='round'/></svg>");
   }
 
   body.bg-sprouts,
   .bg-preview-option.bg-sprouts {
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><ellipse cx='13' cy='17' rx='3' ry='6' fill='rgba(132,153,88,0.28)' transform='rotate(-25 13 17)'/><ellipse cx='19' cy='17' rx='3' ry='6' fill='rgba(132,153,88,0.28)' transform='rotate(25 19 17)'/></svg>");
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><ellipse cx='13' cy='17' rx='3' ry='6' fill='rgba(157,165,135,0.28)' transform='rotate(-25 13 17)'/><ellipse cx='19' cy='17' rx='3' ry='6' fill='rgba(157,165,135,0.28)' transform='rotate(25 19 17)'/></svg>");
   }
   body.theme-dark.bg-sprouts,
   body.theme-dark .bg-preview-option.bg-sprouts {
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><ellipse cx='13' cy='17' rx='3' ry='6' fill='rgba(168,188,114,0.22)' transform='rotate(-25 13 17)'/><ellipse cx='19' cy='17' rx='3' ry='6' fill='rgba(168,188,114,0.22)' transform='rotate(25 19 17)'/></svg>");
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><ellipse cx='13' cy='17' rx='3' ry='6' fill='rgba(181,188,159,0.22)' transform='rotate(-25 13 17)'/><ellipse cx='19' cy='17' rx='3' ry='6' fill='rgba(181,188,159,0.22)' transform='rotate(25 19 17)'/></svg>");
   }
 
   /* Preview tiles in the Settings background picker */
@@ -204,6 +205,29 @@
   .empty h2 { margin: 0 0 6px; font-family: inherit; font-size: 24px; font-weight: 700; letter-spacing: -0.4px; color: var(--ink); }
   .empty p { margin: 0; font-size: 15px; line-height: 1.5; max-width: 280px; margin-left: auto; margin-right: auto; }
 
+  /* Home hero — time-aware greeting at the top of the home view.
+     Two-line mixed-weight typography, friendly and warm. */
+  .home-hero {
+    padding: 8px 4px 24px;
+    margin-bottom: 4px;
+  }
+  .home-hero-greeting {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    letter-spacing: -0.2px;
+    margin-bottom: 4px;
+  }
+  .home-hero-prompt {
+    font-size: 30px;
+    font-weight: 800;
+    color: var(--ink);
+    letter-spacing: -0.7px;
+    line-height: 1.1;
+  }
+  body.access-large .home-hero-greeting { font-size: 20px; }
+  body.access-large .home-hero-prompt { font-size: 34px; }
+
   .home-section-header {
     font-size: 14px;
     font-weight: 700;
@@ -215,11 +239,8 @@
 
   .project-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-  }
-  @media (min-width: 480px) {
-    .project-grid { grid-template-columns: 1fr 1fr 1fr; }
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
   .project-card {
     background: var(--surface);
@@ -230,31 +251,70 @@
     transition: transform 0.1s ease, box-shadow 0.1s ease;
     box-shadow: var(--shadow);
     display: flex;
-    flex-direction: column;
-    min-height: 190px;
+    flex-direction: row;
+    align-items: stretch;
+    min-height: 110px;
     text-align: left;
     font-family: inherit;
     overflow: hidden;
     /* Anchor for the per-card edit button */
     position: relative;
   }
-  .project-card:active { transform: scale(0.97); }
-  /* Colored top zone where the folder icon lives. Default is a soft sage tint
+  .project-card:active { transform: scale(0.98); }
+  /* Colored LEFT zone where the folder icon lives. Default is a soft sage tint
      so cards still feel alive even without a custom color. */
   .project-card-icon-area {
-    height: 110px;
+    width: 110px;
     flex-shrink: 0;
     background: var(--sage-soft);
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
+    overflow: hidden;
+  }
+  /* Soft off-center circle gives the icon zone depth and a hand-drawn feel,
+     borrowed from the illustrated card backgrounds in travel app inspo. */
+  .project-card-icon-area::before {
+    content: "";
+    position: absolute;
+    top: -28px;
+    right: -28px;
+    width: 90px;
+    height: 90px;
+    background: rgba(255, 255, 255, 0.22);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .project-card-icon-area::after {
+    content: "";
+    position: absolute;
+    bottom: -36px;
+    left: -16px;
+    width: 70px;
+    height: 70px;
+    background: rgba(255, 255, 255, 0.14);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  body.theme-dark .project-card-icon-area::before {
+    background: rgba(255, 255, 255, 0.08);
+  }
+  body.theme-dark .project-card-icon-area::after {
+    background: rgba(255, 255, 255, 0.05);
+  }
+  /* The icon itself sits above the decorative circles */
+  .project-card-icon-area .project-folder {
+    position: relative;
+    z-index: 1;
   }
   .project-card-info {
     flex: 1;
-    padding: 14px 16px 16px;
+    min-width: 0;
+    padding: 16px 20px;
     display: flex;
     flex-direction: column;
+    justify-content: center;
     gap: 4px;
     background: var(--surface);
   }
@@ -265,9 +325,9 @@
     width: 30px;
     height: 30px;
     border: none;
-    background: rgba(255, 255, 255, 0.7);
+    background: var(--surface-2);
     border-radius: 50%;
-    color: var(--ink);
+    color: var(--ink-soft);
     font-size: 14px;
     cursor: pointer;
     padding: 0;
@@ -276,16 +336,12 @@
     justify-content: center;
     line-height: 1;
     font-family: inherit;
-    box-shadow: 0 1px 3px rgba(10, 51, 35, 0.1);
     z-index: 2;
   }
   .project-card-edit-btn:active {
-    background: white;
+    background: var(--accent-soft);
+    color: var(--accent);
     transform: scale(0.92);
-  }
-  body.theme-dark .project-card-edit-btn {
-    background: rgba(0, 0, 0, 0.4);
-    color: var(--ink);
   }
   body.access-large .project-card-edit-btn {
     width: 36px;
@@ -1809,6 +1865,10 @@
 <main id="main">
   <!-- Home view -->
   <section id="home-view">
+    <div class="home-hero" id="home-hero">
+      <div class="home-hero-greeting" id="home-hero-greeting"></div>
+      <div class="home-hero-prompt">What are you making?</div>
+    </div>
     <div id="project-list"></div>
   </section>
 
@@ -1843,7 +1903,7 @@
         <div class="draw-toolbar" id="draw-toolbar">
           <button class="draw-mode-btn" id="draw-mode-btn">✎ Draw</button>
           <div class="tool-set" id="tool-set">
-            <button class="color-swatch active" data-color="#0A3323" style="background:#0A3323"></button>
+            <button class="color-swatch active" data-color="#3D2C26" style="background:#3D2C26"></button>
             <button class="color-swatch" data-color="#A66B5F" style="background:#A66B5F"></button>
             <button class="color-swatch" data-color="#3b6dad" style="background:#3b6dad"></button>
             <button class="color-swatch" data-color="#839958" style="background:#839958"></button>
@@ -2559,7 +2619,20 @@
   }
 
   // ------- Render: home -------
+  // Time-aware greeting for the home hero — adds a small warmth without
+   // needing user data. Refreshed every time we render the home view.
+  function getHomeGreeting() {
+    const h = new Date().getHours();
+    if (h < 5)  return 'Late night stitches.';
+    if (h < 12) return 'Good morning.';
+    if (h < 17) return 'Hi there.';
+    if (h < 22) return 'Good evening.';
+    return 'Cozy night stitches.';
+  }
+
   function renderHome() {
+    const greetingEl = document.getElementById('home-hero-greeting');
+    if (greetingEl) greetingEl.textContent = getHomeGreeting();
     const list = document.getElementById('project-list');
     if (projects.length === 0) {
       list.innerHTML = `
@@ -2983,7 +3056,7 @@
   const drawCanvas = document.getElementById('draw-canvas');
   const drawCtx = drawCanvas.getContext('2d');
   let drawMode = false;
-  let currentColor = '#0A3323';
+  let currentColor = '#3D2C26';
   let currentTool = 'pen'; // 'pen' or 'eraser'
   let isDrawing = false;
   let activeStroke = null;
