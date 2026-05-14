@@ -7,52 +7,61 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="stitchnest" />
 <meta name="mobile-web-app-capable" content="yes" />
-<meta name="theme-color" content="#FBF5EE" media="(prefers-color-scheme: light)" />
-<meta name="theme-color" content="#2D1F22" media="(prefers-color-scheme: dark)" />
+<meta name="theme-color" content="#FFF8E8" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#1F2342" media="(prefers-color-scheme: dark)" />
 <meta name="description" content="Pattern library, stitch and row counters, drawing on patterns, and action-row alerts for fiber crafters." />
 <link rel="manifest" href="manifest.json" />
 <link rel="apple-touch-icon" href="apple-touch-icon.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png" />
 <title>stitchnest — fiber craft companion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,700;0,9..144,900;1,9..144,700;1,9..144,900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
   :root {
-    /* Peach + sage + cocoa palette — warm, modern, cottagecore-meets-clean-girl.
-       Refresh from the original cream-and-forest scheme to feel more current
-       for the young-adult fiber-craft audience. */
-    --bg: #FBF5EE;            /* cream peach */
+    /* Y2K retro cute — cream butter background, hot pink accent, mint sage,
+       deep navy ink with dark outlined cards. Built for early-2000s revival
+       aesthetic, bright and playful without going neobrutalist-aggressive. */
+    --bg: #FFF8E8;            /* cream butter */
     --surface: #FFFFFF;        /* elevated cards */
-    --surface-2: #F8E9E2;      /* blush-tinted alt surface */
-    --ink: #3D2C26;            /* deep cocoa — primary text */
-    --ink-soft: #7A6157;       /* warm taupe — secondary text */
-    --line: #ECDDD2;           /* warm peach border */
-    --accent: #E8A095;         /* dusty rose — buttons & active states */
-    --accent-soft: #FAEBE5;    /* very pale rose tint */
-    --sage: #9DA587;           /* dusty sage — secondary accent */
-    --sage-soft: #ECEFE0;      /* very pale sage */
-    --shadow: 0 1px 3px rgba(61, 44, 38, 0.08), 0 4px 16px rgba(61, 44, 38, 0.06);
-    /* Toast popover — high contrast in both themes, inverts in dark. */
-    --toast-bg: #3D2C26;
-    --toast-fg: #FBF5EE;
+    --surface-2: #FFEEC9;      /* butter yellow tint for alt */
+    --ink: #1F2342;            /* deep navy — primary text */
+    --ink-soft: #6B6E83;       /* muted navy — secondary text */
+    --line: #1F2342;           /* DARK borders for that outlined Y2K look */
+    --accent: #FF6B9D;         /* hot pink — buttons & active states */
+    --accent-soft: #FFD9E5;    /* pale cotton candy */
+    --pop: #B69BFF;            /* lavender pop — secondary girlie accent */
+    --pop-soft: #E8DDFF;       /* pale lavender */
+    --sage: #6BBE85;           /* retro mint — secondary accent */
+    --sage-soft: #D6F0DC;      /* very pale mint */
+    --shadow: 0 2px 0 #1F2342, 0 4px 12px rgba(31, 35, 66, 0.08);
+    /* Toast popover — navy on cream, hot pink would be too much */
+    --toast-bg: #1F2342;
+    --toast-fg: #FFF8E8;
   }
 
-  /* Dark theme. Deep mulled-wine bg with cream-peach text — preserves the
-     warm feeling at night without going forest-green. */
+  /* Dark theme — Shego-from-Kim-Possible vibes: near-black with plasma green
+     and hot pink. Y2K but with the lights off. Body text leans mint-cream so
+     it feels part of the world; plasma only on accents so it doesn't fry the
+     eyes. Hot pink stays because Shego's palette has magenta too. */
   body.theme-dark {
-    --bg: #2D1F22;
-    --surface: #3A2A2E;
-    --surface-2: #4A363B;
-    --ink: #FBF5EE;
-    --ink-soft: #B59A92;
-    --line: #503A40;
-    --accent: #E8A095;
-    --accent-soft: #4A2E2D;
-    --sage: #B5BC9F;
-    --sage-soft: #2F352B;
-    --shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.25);
-    --toast-bg: #FBF5EE;
-    --toast-fg: #3D2C26;
+    --bg: #0A0E12;
+    --surface: #14191F;
+    --surface-2: #1F2730;
+    --ink: #E8F5DC;            /* soft mint-cream, not pure white */
+    --ink-soft: #8DA39A;       /* muted sage for secondary text */
+    --line: #5FFF50;           /* acid plasma green borders */
+    --accent: #FF6B9D;         /* hot pink — kept from light mode */
+    --accent-soft: #2D1A28;
+    --pop: #5FFF50;            /* SHEGO PLASMA — primary accent */
+    --pop-soft: #0D2A0F;
+    --sage: #7FE85F;           /* slightly softer plasma for icons */
+    --sage-soft: #1A2D1C;
+    --shadow: 0 2px 0 rgba(95, 255, 80, 0.18), 0 4px 14px rgba(0, 0, 0, 0.55);
+    --toast-bg: #5FFF50;
+    --toast-fg: #0A0E12;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body {
@@ -76,29 +85,29 @@
      to the small preview tiles in Settings so they show the same texture. */
   body.bg-dots,
   .bg-preview-option.bg-dots {
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20'><circle cx='10' cy='10' r='1.2' fill='rgba(122,97,87,0.3)'/></svg>");
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20'><circle cx='10' cy='10' r='1.2' fill='rgba(31,35,66,0.3)'/></svg>");
   }
   body.theme-dark.bg-dots,
   body.theme-dark .bg-preview-option.bg-dots {
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20'><circle cx='10' cy='10' r='1.2' fill='rgba(251,245,238,0.18)'/></svg>");
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20'><circle cx='10' cy='10' r='1.2' fill='rgba(95,255,80,0.22)'/></svg>");
   }
 
   body.bg-knit,
   .bg-preview-option.bg-knit {
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='8'><path d='M 0 6 L 4 2 L 8 6 L 12 2 L 16 6' stroke='rgba(122,97,87,0.25)' fill='none' stroke-width='1.4' stroke-linecap='round'/></svg>");
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='8'><path d='M 0 6 L 4 2 L 8 6 L 12 2 L 16 6' stroke='rgba(31,35,66,0.25)' fill='none' stroke-width='1.4' stroke-linecap='round'/></svg>");
   }
   body.theme-dark.bg-knit,
   body.theme-dark .bg-preview-option.bg-knit {
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='8'><path d='M 0 6 L 4 2 L 8 6 L 12 2 L 16 6' stroke='rgba(251,245,238,0.16)' fill='none' stroke-width='1.4' stroke-linecap='round'/></svg>");
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='8'><path d='M 0 6 L 4 2 L 8 6 L 12 2 L 16 6' stroke='rgba(95,255,80,0.18)' fill='none' stroke-width='1.4' stroke-linecap='round'/></svg>");
   }
 
   body.bg-sprouts,
   .bg-preview-option.bg-sprouts {
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><ellipse cx='13' cy='17' rx='3' ry='6' fill='rgba(157,165,135,0.28)' transform='rotate(-25 13 17)'/><ellipse cx='19' cy='17' rx='3' ry='6' fill='rgba(157,165,135,0.28)' transform='rotate(25 19 17)'/></svg>");
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><ellipse cx='13' cy='17' rx='3' ry='6' fill='rgba(107,190,133,0.28)' transform='rotate(-25 13 17)'/><ellipse cx='19' cy='17' rx='3' ry='6' fill='rgba(107,190,133,0.28)' transform='rotate(25 19 17)'/></svg>");
   }
   body.theme-dark.bg-sprouts,
   body.theme-dark .bg-preview-option.bg-sprouts {
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><ellipse cx='13' cy='17' rx='3' ry='6' fill='rgba(181,188,159,0.22)' transform='rotate(-25 13 17)'/><ellipse cx='19' cy='17' rx='3' ry='6' fill='rgba(181,188,159,0.22)' transform='rotate(25 19 17)'/></svg>");
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><ellipse cx='13' cy='17' rx='3' ry='6' fill='rgba(95,255,80,0.24)' transform='rotate(-25 13 17)'/><ellipse cx='19' cy='17' rx='3' ry='6' fill='rgba(95,255,80,0.24)' transform='rotate(25 19 17)'/></svg>");
   }
 
   /* Preview tiles in the Settings background picker */
@@ -144,13 +153,29 @@
     z-index: 10;
   }
   .app-title {
-    font-family: inherit;
-    font-size: 24px;
-    font-weight: 700;
-    letter-spacing: -0.4px;
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    font-variation-settings: "SOFT" 100;
     color: var(--ink);
+    position: relative;
+    padding-right: 14px;
   }
   .app-title .dot { color: var(--accent); }
+  /* Tiny sparkle next to the wordmark — Lizzie McGuire signature */
+  .app-title::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    right: -2px;
+    width: 12px;
+    height: 12px;
+    background-color: var(--pop);
+    -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 0 L13.6 9.4 L22.4 12 L13.6 14.6 L12 24 L10.4 14.6 L1.6 12 L10.4 9.4 Z'/></svg>") no-repeat center / contain;
+            mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 0 L13.6 9.4 L22.4 12 L13.6 14.6 L12 24 L10.4 14.6 L1.6 12 L10.4 9.4 Z'/></svg>") no-repeat center / contain;
+  }
   .icon-btn {
     background: transparent;
     border: none;
@@ -202,14 +227,23 @@
     z-index: 1;
   }
   .empty .yarn { font-size: 84px; line-height: 1; margin-bottom: 16px; }
-  .empty h2 { margin: 0 0 6px; font-family: inherit; font-size: 24px; font-weight: 700; letter-spacing: -0.4px; color: var(--ink); }
+  .empty h2 { margin: 0 0 6px; font-family: "Fraunces", serif; font-style: italic; font-size: 28px; font-weight: 800; letter-spacing: -0.7px; font-variation-settings: "SOFT" 100; color: var(--ink); }
   .empty p { margin: 0; font-size: 15px; line-height: 1.5; max-width: 280px; margin-left: auto; margin-right: auto; }
 
   /* Home hero — time-aware greeting at the top of the home view.
      Two-line mixed-weight typography, friendly and warm. */
   .home-hero {
-    padding: 8px 4px 24px;
+    padding: 8px 4px 28px;
     margin-bottom: 4px;
+  }
+  /* Wrapper lets us overflow sparkles outside the bounds of the inline text.
+     Sparkles are siblings of .home-hero-prompt (not children) so they position
+     against the wrap, decoupled from where the text wraps onto a new line. */
+  .home-hero-prompt-wrap {
+    display: inline-block;
+    position: relative;
+    padding-right: 40px; /* breathing room for right-side sparkles */
+    padding-top: 22px;   /* breathing room for top sparkle */
   }
   .home-hero-greeting {
     font-size: 18px;
@@ -219,21 +253,258 @@
     margin-bottom: 4px;
   }
   .home-hero-prompt {
-    font-size: 30px;
-    font-weight: 800;
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-size: 40px;
+    font-weight: 900;
     color: var(--ink);
-    letter-spacing: -0.7px;
-    line-height: 1.1;
+    letter-spacing: -1.2px;
+    line-height: 1.02;
+    font-variation-settings: "SOFT" 100;
+    position: relative;
+    display: inline-block;
   }
+  /* Hot pink wavy underline under the hero — quintessential Y2K notebook doodle */
+  .home-hero-prompt::after {
+    content: "";
+    position: absolute;
+    bottom: -6px;
+    left: 0;
+    width: 100%;
+    height: 8px;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 8' preserveAspectRatio='none'><path d='M 0 6 Q 12.5 0 25 4 T 50 4 T 75 4 T 100 6' stroke='%23FF6B9D' fill='none' stroke-width='2.5' stroke-linecap='round'/></svg>");
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    pointer-events: none;
+  }
+  /* Sparkles scattered around the hero text — multiple sizes, mixed colors.
+     Positioned so they sit OUTSIDE the text bounds (above, beside, below the
+     underline) rather than over the letters themselves. z-index keeps them
+     above the prompt as insurance. */
+  .hero-sparkle {
+    position: absolute;
+    display: inline-flex;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .hero-sparkle svg { display: block; }
+  .hero-sparkle.sparkle-1 { color: var(--accent); top: -6px;  right: -4px; }   /* big, top-right above text */
+  .hero-sparkle.sparkle-2 { color: var(--pop);    top: 38%;   right: -18px; }  /* medium, mid-right outside */
+  .hero-sparkle.sparkle-3 { color: var(--sage);   bottom: -16px; right: 2px; } /* small, just below underline */
+  body.access-large .home-hero-prompt { font-size: 44px; }
   body.access-large .home-hero-greeting { font-size: 20px; }
   body.access-large .home-hero-prompt { font-size: 34px; }
 
-  .home-section-header {
-    font-size: 14px;
+  /* ============== Streak card ==============
+     Sits between the hero and the project list. Shows the current streak
+     count + 7-dot week strip. Tap opens the streak detail sheet.
+     Activity = at least one row or stitch logged on a given day.
+     Forgiveness rule = 1 freeze allowed per rolling 7 days. */
+  .streak-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    width: 100%;
+    background: var(--surface);
+    border: 2px solid var(--ink);
+    border-radius: 20px;
+    padding: 14px 16px;
+    margin: 26px 0 22px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    font-family: inherit;
+    text-align: left;
+    color: var(--ink);
+    transition: transform 0.12s ease;
+  }
+  .streak-card:active { transform: scale(0.985); }
+  .streak-card-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+  .streak-flame {
+    font-size: 34px;
+    line-height: 1;
+    filter: drop-shadow(0 1px 0 rgba(0,0,0,0.15));
+  }
+  .streak-numbers { min-width: 0; }
+  .streak-count {
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--ink);
+    font-variation-settings: "SOFT" 100;
+  }
+  .streak-label {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+    text-transform: lowercase;
+    letter-spacing: 0.3px;
+  }
+  .streak-week {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+  }
+  .streak-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1.5px solid var(--ink-soft);
+    background: transparent;
+  }
+  .streak-dot.active {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .streak-dot.freeze {
+    background: var(--pop);
+    border-color: var(--pop);
+    opacity: 0.55;
+  }
+  .streak-dot.today {
+    border-color: var(--accent);
+    border-width: 2px;
+  }
+  .streak-dot.today.active {
+    box-shadow: 0 0 0 2px var(--accent-soft, transparent);
+  }
+  body.access-large .streak-count { font-size: 32px; }
+  body.access-large .streak-label { font-size: 14px; }
+
+  /* Streak detail sheet (tap the home card to open) */
+  .streak-sheet {
+    height: 80vh;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    padding: 22px 18px 28px;
+  }
+  .streak-sheet h3 { flex-shrink: 0; margin: 0 0 14px; }
+  .streak-sheet-body {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .streak-hero-big {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 18px 0 22px;
+    text-align: center;
+  }
+  .streak-hero-big .streak-flame { font-size: 64px; }
+  .streak-hero-big .streak-count {
+    font-size: 56px;
+    margin-top: 6px;
+  }
+  .streak-hero-big .streak-label {
+    font-size: 15px;
+    margin-top: 4px;
+  }
+  .streak-stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .streak-stat-tile {
+    background: var(--surface-2);
+    border-radius: 14px;
+    padding: 12px 14px;
+    text-align: center;
+  }
+  .streak-stat-value {
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .streak-stat-label {
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+  }
+  .streak-calendar-title {
+    font-size: 12px;
     font-weight: 700;
     color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    margin: 6px 0 10px;
+  }
+  .streak-calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+  }
+  .streak-cal-day {
+    aspect-ratio: 1;
+    border-radius: 6px;
+    background: var(--surface-2);
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    color: var(--ink-soft);
+  }
+  .streak-cal-day.active {
+    background: var(--accent);
+    color: var(--bg);
+    font-weight: 700;
+  }
+  .streak-cal-day.freeze {
+    background: var(--pop);
+    color: var(--bg);
+    opacity: 0.55;
+  }
+  .streak-cal-day.today {
+    border-color: var(--ink);
+  }
+  .streak-cal-day.future { opacity: 0.18; }
+  .streak-cal-weekday {
+    font-size: 10px;
+    color: var(--ink-soft);
+    text-align: center;
+    padding-bottom: 4px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .streak-legend {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 14px;
+    font-size: 11px;
+    color: var(--ink-soft);
+  }
+  .streak-legend-item { display: flex; align-items: center; gap: 5px; }
+  .streak-legend-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .home-section-header {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--ink);
     margin: 4px 4px 14px;
-    letter-spacing: -0.1px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
   }
   body.access-large .home-section-header { font-size: 16px; }
 
@@ -244,7 +515,7 @@
   }
   .project-card {
     background: var(--surface);
-    border: 1px solid var(--line);
+    border: 2px solid var(--line);
     border-radius: 22px;
     padding: 0;
     cursor: pointer;
@@ -273,36 +544,45 @@
     position: relative;
     overflow: hidden;
   }
-  /* Soft off-center circle gives the icon zone depth and a hand-drawn feel,
-     borrowed from the illustrated card backgrounds in travel app inspo. */
+  /* Star sparkles inside the icon zone — Lizzie McGuire scrapbook vibe.
+     Two stars in different sizes/positions give the area energy without
+     competing with the main folder icon. */
   .project-card-icon-area::before {
     content: "";
     position: absolute;
-    top: -28px;
-    right: -28px;
-    width: 90px;
-    height: 90px;
-    background: rgba(255, 255, 255, 0.22);
-    border-radius: 50%;
+    top: 12px;
+    right: 12px;
+    width: 16px;
+    height: 16px;
+    background-color: rgba(255, 255, 255, 0.55);
+    -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 0 L13.6 9.4 L22.4 12 L13.6 14.6 L12 24 L10.4 14.6 L1.6 12 L10.4 9.4 Z'/></svg>") no-repeat center / contain;
+            mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 0 L13.6 9.4 L22.4 12 L13.6 14.6 L12 24 L10.4 14.6 L1.6 12 L10.4 9.4 Z'/></svg>") no-repeat center / contain;
     pointer-events: none;
   }
   .project-card-icon-area::after {
     content: "";
     position: absolute;
-    bottom: -36px;
-    left: -16px;
-    width: 70px;
-    height: 70px;
-    background: rgba(255, 255, 255, 0.14);
-    border-radius: 50%;
+    bottom: 14px;
+    left: 8px;
+    width: 10px;
+    height: 10px;
+    background-color: rgba(255, 255, 255, 0.45);
+    -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 0 L13.6 9.4 L22.4 12 L13.6 14.6 L12 24 L10.4 14.6 L1.6 12 L10.4 9.4 Z'/></svg>") no-repeat center / contain;
+            mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M12 0 L13.6 9.4 L22.4 12 L13.6 14.6 L12 24 L10.4 14.6 L1.6 12 L10.4 9.4 Z'/></svg>") no-repeat center / contain;
     pointer-events: none;
   }
   body.theme-dark .project-card-icon-area::before {
-    background: rgba(255, 255, 255, 0.08);
+    background-color: rgba(255, 255, 255, 0.35);
   }
   body.theme-dark .project-card-icon-area::after {
-    background: rgba(255, 255, 255, 0.05);
+    background-color: rgba(255, 255, 255, 0.25);
   }
+
+  /* Subtle alternating tilt — like cards taped into a scrapbook */
+  .project-card:nth-child(odd)  { transform: rotate(-0.7deg); }
+  .project-card:nth-child(even) { transform: rotate(0.7deg); }
+  .project-card:nth-child(odd):active  { transform: rotate(-0.7deg) scale(0.98); }
+  .project-card:nth-child(even):active { transform: rotate(0.7deg) scale(0.98); }
   /* The icon itself sits above the decorative circles */
   .project-card-icon-area .project-folder {
     position: relative;
@@ -398,7 +678,7 @@
   /* Pattern info section */
   .pattern-info-section {
     background: var(--surface);
-    border: 1px solid var(--line);
+    border: 2px solid var(--line);
     border-radius: 22px;
     padding: 14px 14px 12px;
     margin-bottom: 16px;
@@ -411,11 +691,11 @@
     margin-bottom: 12px;
   }
   .pattern-info-title {
-    font-size: 17px;
-    text-transform: none;
-    letter-spacing: -0.2px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
     color: var(--ink);
-    font-weight: 700;
+    font-weight: 800;
   }
   .detect-btn {
     background: var(--surface-2);
@@ -488,28 +768,29 @@
      backwards compatibility but display: none. */
   .fab { display: none !important; }
 
-  /* Header + button (top-right on home view). Bigger, on-brand, replaces the FAB. */
+  /* Header + button — hot pink to lavender gradient with dark outline.
+     Lizzie McGuire-style girlie pop attention-grabber. */
   .header-add-btn {
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--pop) 100%);
     color: white;
-    border: none;
-    width: 38px;
-    height: 38px;
+    border: 2px solid var(--ink);
+    width: 40px;
+    height: 40px;
     padding: 0;
     border-radius: 50%;
     font-size: 24px;
-    font-weight: 400;
+    font-weight: 700;
     line-height: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 6px rgba(211, 150, 140, 0.35);
+    box-shadow: 0 2px 0 var(--ink);
   }
   .header-add-btn:active {
-    background: var(--accent);
-    transform: scale(0.92);
+    transform: translateY(1px) scale(0.94);
+    box-shadow: 0 1px 0 var(--ink);
   }
-  body.access-large .header-add-btn { width: 44px; height: 44px; font-size: 28px; }
+  body.access-large .header-add-btn { width: 46px; height: 46px; font-size: 28px; }
 
   /* Project detail */
   .detail-header {
@@ -527,12 +808,14 @@
     gap: 4px;
   }
   .detail-title {
-    font-family: inherit;
-    font-size: 28px;
-    font-weight: 700;
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-size: 30px;
+    font-weight: 800;
     margin: 0;
     word-break: break-word;
-    letter-spacing: -0.5px;
+    letter-spacing: -0.7px;
+    font-variation-settings: "SOFT" 100;
   }
   .detail-sub {
     color: var(--ink-soft);
@@ -552,22 +835,22 @@
   }
   .edit-project-btn:active { background: var(--accent-soft); }
 
-  /* Project home cards: color variants paint the TOP icon area, not the whole
-     card. Card body stays clean white/surface so text reads cleanly. */
-  .project-card.color-sage .project-card-icon-area { background: #DCE3C1; }
-  .project-card.color-rose .project-card-icon-area { background: #F5DBD4; }
-  .project-card.color-terracotta .project-card-icon-area { background: #ECD0C7; }
-  .project-card.color-blue .project-card-icon-area { background: #D0DAE8; }
-  .project-card.color-mustard .project-card-icon-area { background: #E8DAB0; }
-  .project-card.color-lavender .project-card-icon-area { background: #D8C8E0; }
-  .project-card.color-mint .project-card-icon-area { background: #C8E0D5; }
-  body.theme-dark .project-card.color-sage .project-card-icon-area { background: #2A3D28; }
-  body.theme-dark .project-card.color-rose .project-card-icon-area { background: #3D2A28; }
-  body.theme-dark .project-card.color-terracotta .project-card-icon-area { background: #3D2C26; }
-  body.theme-dark .project-card.color-blue .project-card-icon-area { background: #1F2D3D; }
+  /* Project card color variants — brighter Y2K pastels.
+     Paint the LEFT icon area; card body stays clean for readable text. */
+  .project-card.color-sage .project-card-icon-area { background: #B5E5C9; }
+  .project-card.color-rose .project-card-icon-area { background: #FFD4E0; }
+  .project-card.color-terracotta .project-card-icon-area { background: #FFB89D; }
+  .project-card.color-blue .project-card-icon-area { background: #A5C8FF; }
+  .project-card.color-mustard .project-card-icon-area { background: #F4E25F; }
+  .project-card.color-lavender .project-card-icon-area { background: #C8B4FF; }
+  .project-card.color-mint .project-card-icon-area { background: #98DDC4; }
+  body.theme-dark .project-card.color-sage .project-card-icon-area { background: #2F4A3B; }
+  body.theme-dark .project-card.color-rose .project-card-icon-area { background: #4A2E45; }
+  body.theme-dark .project-card.color-terracotta .project-card-icon-area { background: #4D2E22; }
+  body.theme-dark .project-card.color-blue .project-card-icon-area { background: #1F2D5A; }
   body.theme-dark .project-card.color-mustard .project-card-icon-area { background: #3D3520; }
-  body.theme-dark .project-card.color-lavender .project-card-icon-area { background: #2D2538; }
-  body.theme-dark .project-card.color-mint .project-card-icon-area { background: #1F3530; }
+  body.theme-dark .project-card.color-lavender .project-card-icon-area { background: #3D2D5C; }
+  body.theme-dark .project-card.color-mint .project-card-icon-area { background: #1F4838; }
 
   /* Appearance pickers (icon + color) inside the Edit project modal */
   .appearance-picker {
@@ -612,13 +895,13 @@
     background: var(--ink-soft);
     transform: rotate(-45deg);
   }
-  .color-swatch-card.color-sage { background: #DCE3C1; }
-  .color-swatch-card.color-rose { background: #F5DBD4; }
-  .color-swatch-card.color-terracotta { background: #ECD0C7; }
-  .color-swatch-card.color-blue { background: #D0DAE8; }
-  .color-swatch-card.color-mustard { background: #E8DAB0; }
-  .color-swatch-card.color-lavender { background: #D8C8E0; }
-  .color-swatch-card.color-mint { background: #C8E0D5; }
+  .color-swatch-card.color-sage { background: #B5E5C9; }
+  .color-swatch-card.color-rose { background: #FFD4E0; }
+  .color-swatch-card.color-terracotta { background: #FFB89D; }
+  .color-swatch-card.color-blue { background: #A5C8FF; }
+  .color-swatch-card.color-mustard { background: #F4E25F; }
+  .color-swatch-card.color-lavender { background: #C8B4FF; }
+  .color-swatch-card.color-mint { background: #98DDC4; }
 
   /* Craft type pills (Edit Project modal) */
   .craft-type-picker {
@@ -663,10 +946,12 @@
     margin-bottom: 22px;
   }
   .onboarding-modal h2 {
-    font-family: inherit;
-    font-size: 28px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.8px;
+    font-variation-settings: "SOFT" 100;
     margin: 0 0 12px;
     color: var(--ink);
   }
@@ -732,7 +1017,7 @@
     width: 100%;
     padding: 16px 18px;
     background: var(--surface);
-    border: 1px solid var(--line);
+    border: 2px solid var(--line);
     border-radius: 22px;
     font-family: inherit;
     font-size: 15px;
@@ -771,17 +1056,17 @@
   body.access-large .view-details-btn .view-details-sub { font-size: 13px; }
 
   body.theme-dark .color-swatch-card.color-default { background: var(--surface); }
-  body.theme-dark .color-swatch-card.color-sage { background: #2A3D28; }
-  body.theme-dark .color-swatch-card.color-rose { background: #3D2A28; }
-  body.theme-dark .color-swatch-card.color-terracotta { background: #3D2C26; }
-  body.theme-dark .color-swatch-card.color-blue { background: #1F2D3D; }
+  body.theme-dark .color-swatch-card.color-sage { background: #2F4A3B; }
+  body.theme-dark .color-swatch-card.color-rose { background: #4A2E45; }
+  body.theme-dark .color-swatch-card.color-terracotta { background: #4D2E22; }
+  body.theme-dark .color-swatch-card.color-blue { background: #1F2D5A; }
   body.theme-dark .color-swatch-card.color-mustard { background: #3D3520; }
-  body.theme-dark .color-swatch-card.color-lavender { background: #2D2538; }
-  body.theme-dark .color-swatch-card.color-mint { background: #1F3530; }
+  body.theme-dark .color-swatch-card.color-lavender { background: #3D2D5C; }
+  body.theme-dark .color-swatch-card.color-mint { background: #1F4838; }
 
   .pdf-section {
     background: var(--surface);
-    border: 1px solid var(--line);
+    border: 2px solid var(--line);
     border-radius: 22px;
     margin-bottom: 16px;
     overflow: hidden;
@@ -969,7 +1254,7 @@
   }
   .counter {
     background: var(--surface);
-    border: 1px solid var(--line);
+    border: 2px solid var(--line);
     border-radius: 22px;
     padding: 16px 12px 14px;
     text-align: center;
@@ -1080,7 +1365,7 @@
 
   .action-section {
     background: var(--surface);
-    border: 1px solid var(--line);
+    border: 2px solid var(--line);
     border-radius: 22px;
     padding: 14px 14px 12px;
     margin-bottom: 16px;
@@ -1093,11 +1378,11 @@
     margin-bottom: 12px;
   }
   .action-section-title {
-    font-size: 17px;
-    text-transform: none;
-    letter-spacing: -0.2px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
     color: var(--ink);
-    font-weight: 700;
+    font-weight: 800;
   }
   .add-action-btn {
     background: var(--surface-2);
@@ -1219,7 +1504,7 @@
   /* Notes */
   .notes-section {
     background: var(--surface);
-    border: 1px solid var(--line);
+    border: 2px solid var(--line);
     border-radius: 22px;
     padding: 14px 14px 12px;
     margin-bottom: 24px;
@@ -1232,11 +1517,11 @@
     margin-bottom: 10px;
   }
   .notes-label {
-    font-size: 17px;
-    text-transform: none;
-    letter-spacing: -0.2px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
     color: var(--ink);
-    font-weight: 700;
+    font-weight: 800;
   }
   .notes-saved {
     font-size: 11px;
@@ -1286,10 +1571,12 @@
   }
   .modal h3 {
     margin: 0 0 16px;
-    font-family: inherit;
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: -0.3px;
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.6px;
+    font-variation-settings: "SOFT" 100;
   }
   .modal label {
     display: block;
@@ -1609,11 +1896,11 @@
     margin-bottom: 16px;
   }
   .working-on-label {
-    font-size: 13px;
-    text-transform: none;
-    letter-spacing: 0;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
     color: var(--sage);
-    font-weight: 700;
+    font-weight: 800;
     flex-shrink: 0;
   }
   .working-on-input {
@@ -1679,15 +1966,18 @@
   }
   .settings-item-buttons button {
     flex: 1;
-    padding: 10px;
+    padding: 10px 6px;
     border: none;
     background: transparent;
     border-radius: 7px;
     font-family: inherit;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 600;
     color: var(--ink-soft);
     cursor: pointer;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
   }
   .settings-item-buttons button.active {
     background: var(--surface);
@@ -1867,8 +2157,24 @@
   <section id="home-view">
     <div class="home-hero" id="home-hero">
       <div class="home-hero-greeting" id="home-hero-greeting"></div>
-      <div class="home-hero-prompt">What are you making?</div>
+      <div class="home-hero-prompt-wrap">
+        <div class="home-hero-prompt">What are you making?</div>
+        <span class="hero-sparkle sparkle-1" aria-hidden="true"><svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M12 0 L13.6 9.4 L22.4 12 L13.6 14.6 L12 24 L10.4 14.6 L1.6 12 L10.4 9.4 Z"/></svg></span>
+        <span class="hero-sparkle sparkle-2" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 0 L13.6 9.4 L22.4 12 L13.6 14.6 L12 24 L10.4 14.6 L1.6 12 L10.4 9.4 Z"/></svg></span>
+        <span class="hero-sparkle sparkle-3" aria-hidden="true"><svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 0 L13.6 9.4 L22.4 12 L13.6 14.6 L12 24 L10.4 14.6 L1.6 12 L10.4 9.4 Z"/></svg></span>
+      </div>
     </div>
+    <!-- Streak card — tap to open detail sheet -->
+    <button class="streak-card" id="streak-card" type="button" aria-label="Open streak details">
+      <div class="streak-card-main">
+        <span class="streak-flame" aria-hidden="true">🔥</span>
+        <div class="streak-numbers">
+          <div class="streak-count" id="streak-count">0</div>
+          <div class="streak-label" id="streak-label">days · log a row to start</div>
+        </div>
+      </div>
+      <div class="streak-week" id="streak-week" aria-hidden="true"></div>
+    </button>
     <div id="project-list"></div>
   </section>
 
@@ -1903,7 +2209,7 @@
         <div class="draw-toolbar" id="draw-toolbar">
           <button class="draw-mode-btn" id="draw-mode-btn">✎ Draw</button>
           <div class="tool-set" id="tool-set">
-            <button class="color-swatch active" data-color="#3D2C26" style="background:#3D2C26"></button>
+            <button class="color-swatch active" data-color="#1F2342" style="background:#1F2342"></button>
             <button class="color-swatch" data-color="#A66B5F" style="background:#A66B5F"></button>
             <button class="color-swatch" data-color="#3b6dad" style="background:#3b6dad"></button>
             <button class="color-swatch" data-color="#839958" style="background:#839958"></button>
@@ -2244,6 +2550,49 @@
   </div>
 </div>
 
+<!-- Streak detail sheet — opens from the home streak card -->
+<div class="modal-overlay" id="streak-sheet-modal">
+  <div class="modal streak-sheet">
+    <h3>Your streak</h3>
+    <div class="streak-sheet-body">
+      <div class="streak-hero-big">
+        <span class="streak-flame" aria-hidden="true">🔥</span>
+        <div class="streak-count" id="streak-count-big">0</div>
+        <div class="streak-label" id="streak-label-big">days in a row</div>
+      </div>
+      <div class="streak-stats-row">
+        <div class="streak-stat-tile">
+          <div class="streak-stat-value" id="streak-best">0</div>
+          <div class="streak-stat-label">Best streak</div>
+        </div>
+        <div class="streak-stat-tile">
+          <div class="streak-stat-value" id="streak-total">0</div>
+          <div class="streak-stat-label">Total days</div>
+        </div>
+      </div>
+      <div class="streak-calendar-title">Last 8 weeks</div>
+      <div class="streak-cal-weekday-row" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:4px;">
+        <div class="streak-cal-weekday">S</div>
+        <div class="streak-cal-weekday">M</div>
+        <div class="streak-cal-weekday">T</div>
+        <div class="streak-cal-weekday">W</div>
+        <div class="streak-cal-weekday">T</div>
+        <div class="streak-cal-weekday">F</div>
+        <div class="streak-cal-weekday">S</div>
+      </div>
+      <div class="streak-calendar" id="streak-calendar"></div>
+      <div class="streak-legend">
+        <div class="streak-legend-item"><span class="streak-legend-swatch" style="background:var(--accent);"></span> Logged</div>
+        <div class="streak-legend-item"><span class="streak-legend-swatch" style="background:var(--pop);opacity:0.55;"></span> Freeze</div>
+        <div class="streak-legend-item"><span class="streak-legend-swatch" style="background:var(--surface-2);border:1px solid var(--ink-soft);"></span> Missed</div>
+      </div>
+    </div>
+    <div class="modal-actions" style="flex-shrink:0;margin-top:14px;">
+      <button class="btn btn-secondary" id="streak-sheet-close" style="width:100%">Done</button>
+    </div>
+  </div>
+</div>
+
 <!-- Backup & restore modal -->
 <div class="modal-overlay" id="backup-modal">
   <div class="modal">
@@ -2312,11 +2661,11 @@
       <div class="settings-item">
         <div class="settings-item-main" style="width:100%">
           <div class="settings-item-title">Theme</div>
-          <div class="settings-item-desc">Choose how stitchnest looks. "System" follows your phone's light / dark setting.</div>
+          <div class="settings-item-desc">Pick your era. "System" follows your phone's light / dark setting.</div>
           <div class="settings-item-buttons" id="theme-picker">
             <button type="button" data-theme="auto">System</button>
-            <button type="button" data-theme="light">Light</button>
-            <button type="button" data-theme="dark">Dark</button>
+            <button type="button" data-theme="light">Main character</button>
+            <button type="button" data-theme="dark">Villain era</button>
           </div>
         </div>
       </div>
@@ -2526,18 +2875,23 @@
   // Outlined SVG icons used on project cards and in the Edit Project picker.
   // All share viewBox 24×24, stroke 2, currentColor — so they inherit text
   // color via CSS and look right in both light and dark themes.
+  // Chunky sticker style: thicker outlines (~2.5px), select shapes filled with
+  // accent colors (--accent hot pink, --sage mint/plasma) for personality.
+  // Outlines use currentColor so they inherit text color and work in both
+  // light + dark themes. Fills use CSS variables via inline `style` so they
+  // also follow the theme.
   const ICONS = {
-    folder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5a2 2 0 0 1 2-2h3.2a2 2 0 0 1 1.4.6L12 6.5h6a2 2 0 0 1 2 2v8.5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6.5z"/></svg>',
-    yarn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="12" r="8"/><path d="M4.5 8.5c2-1 4.5 0 6.5 3s4.5 4 6.5 3"/><path d="M4.5 15.5c2 1 4.5 0 6.5-3s4.5-4 6.5-3"/><path d="M17 17l3.5 3.5"/></svg>',
-    spool: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h14M5 20h14M7 4v16M17 4v16"/><path d="M9 8l6 8M15 8l-6 8" stroke-width="1.4"/></svg>',
-    sweater: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 4 4 9l3 1.5V20a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-9.5L20 9l-2.5-5h-3l-2.5 1.5L9.5 4z"/><path d="M10 11h4"/></svg>',
-    sock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2.5v10.5L6 16a3 3 0 0 0 2 5l7-3 4-4-3-3V2.5z"/><path d="M9 7h6"/></svg>',
-    mitten: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9a4.5 4.5 0 0 1 9 0v10a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1v-3H5a1 1 0 0 1-1-1v-2.5a1 1 0 0 1 1-1h2V9z"/><path d="M7 17h9"/></svg>',
-    hat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17a7 7 0 0 1 14 0"/><rect x="3.5" y="17" width="17" height="3.5" rx="1.5"/><circle cx="12" cy="4" r="1.5"/><path d="M12 5.5V10"/></svg>',
-    shirt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 3 3.5 7.5l2.2 3.7 3-1V20a1 1 0 0 0 1 1h4.6a1 1 0 0 0 1-1v-9.8l3 1 2.2-3.7L15.5 3l-2.5 1.7a1.8 1.8 0 0 1-2 0z"/></svg>',
-    star: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 3 14.9 9.4 22 10.3 16.8 15.1 18.1 22 12 18.7 5.9 22 7.2 15.1 2 10.3 9.1 9.4"/></svg>',
-    heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5 4.7 13c-2-2.2-2-5.7 0-7.8a4.7 4.7 0 0 1 7 0L12 6l.3-.8a4.7 4.7 0 0 1 7 0c2 2.1 2 5.6 0 7.8z"/></svg>',
-    sprout: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V10"/><path d="M12 13a5 5 0 0 0-5-5H4.5v2A5 5 0 0 0 9.5 15h2.5"/><path d="M12 11a5 5 0 0 1 5-5h2.5v2A5 5 0 0 1 14.5 13H12"/></svg>',
+    folder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5a2 2 0 0 1 2-2h3.2a2 2 0 0 1 1.4.6L12 6.5h6a2 2 0 0 1 2 2v8.5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6.5z"/><path style="fill:var(--accent)" stroke="none" d="M16 11.2c-0.4-0.4-1.1-0.4-1.5 0l-0.5 0.5-0.5-0.5c-0.4-0.4-1.1-0.4-1.5 0s-0.4 1.1 0 1.5l2 2 2-2c0.4-0.4 0.4-1.1 0-1.5z"/></svg>',
+    yarn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="13" r="7.5" style="fill:var(--accent)"/><path d="M11 5.5 C 6 9 6 17 11 20.5" stroke-width="1.8"/><path d="M11 5.5 C 16 9 16 17 11 20.5" stroke-width="1.8"/><path d="M3.5 13 C 7 9 15 9 18.5 13" stroke-width="1.8"/><path d="M17 16 Q 20 18 21 21" stroke-width="2.4"/></svg>',
+    spool: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path style="fill:var(--accent)" d="M6.5 6h11v12h-11z"/><path d="M5 4h14M5 20h14"/><path style="stroke:var(--ink)" d="M9 8.5l6 7M15 8.5l-6 7" stroke-width="1.6"/></svg>',
+    sweater: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 L5.5 5.5 L2 6.5 L2 10.5 L6 10.5 L7 9.5 L7 20 Q7 21 8 21 L16 21 Q17 21 17 20 L17 9.5 L18 10.5 L22 10.5 L22 6.5 L18.5 5.5 L15 4 Q12 6 9 4 Z"/><path d="M2 9.5 L6 9.5" stroke-width="1.6" opacity="0.6"/><path d="M18 9.5 L22 9.5" stroke-width="1.6" opacity="0.6"/><path style="fill:var(--accent)" stroke="none" d="M12 16.6c-1.6-1.4-2.7-2.4-2.7-3.6 0-0.9 0.7-1.6 1.5-1.6 0.5 0 1 0.3 1.2 0.7 0.2-0.4 0.7-0.7 1.2-0.7 0.8 0 1.5 0.7 1.5 1.6 0 1.2-1.1 2.2-2.7 3.6z"/></svg>',
+    sock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2.5v10.5L6 16a3 3 0 0 0 2 5l7-3 4-4-3-3V2.5z"/><path style="stroke:var(--accent)" stroke-width="2.4" d="M9 5h6M9 8h6"/></svg>',
+    mitten: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9a4.5 4.5 0 0 1 9 0v10a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1v-3H5a1 1 0 0 1-1-1v-2.5a1 1 0 0 1 1-1h2V9z"/><path style="fill:var(--accent)" stroke="none" d="M7 16.2h9V19a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1z"/></svg>',
+    hat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17a7 7 0 0 1 14 0"/><rect x="3.5" y="17" width="17" height="3.5" rx="1.5"/><circle cx="12" cy="4" r="2.4" style="fill:var(--accent)"/><path d="M12 6.5V10"/></svg>',
+    shirt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 L4.5 6 L2.5 9 L4.5 11 L7 10 L7 20 Q7 21 8 21 L16 21 Q17 21 17 20 L17 10 L19.5 11 L21.5 9 L19.5 6 L15 4 L13 4 L12 7 L11 4 Z"/><circle cx="12" cy="12.5" r="1" style="fill:var(--accent)" stroke="none"/><circle cx="12" cy="15.5" r="1" style="fill:var(--accent)" stroke="none"/><circle cx="12" cy="18.5" r="1" style="fill:var(--accent)" stroke="none"/></svg>',
+    star: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon style="fill:var(--accent)" points="12 3 14.9 9.4 22 10.3 16.8 15.1 18.1 22 12 18.7 5.9 22 7.2 15.1 2 10.3 9.1 9.4"/></svg>',
+    heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path style="fill:var(--accent)" d="M12 20.5 4.7 13c-2-2.2-2-5.7 0-7.8a4.7 4.7 0 0 1 7 0L12 6l.3-.8a4.7 4.7 0 0 1 7 0c2 2.1 2 5.6 0 7.8z"/></svg>',
+    sprout: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21V10.5"/><path style="fill:var(--sage)" d="M12 13a5 5 0 0 0-5-5H4.5v2A5 5 0 0 0 9.5 15h2.5"/><path style="fill:var(--sage)" d="M12 11a5 5 0 0 1 5-5h2.5v2A5 5 0 0 1 14.5 13H12"/><circle cx="12" cy="8.5" r="1.6" style="fill:var(--accent)" stroke="none"/></svg>',
   };
 
   // Maps the legacy emoji values from earlier versions to the new icon names.
@@ -2633,6 +2987,7 @@
   function renderHome() {
     const greetingEl = document.getElementById('home-hero-greeting');
     if (greetingEl) greetingEl.textContent = getHomeGreeting();
+    renderStreakCard();
     const list = document.getElementById('project-list');
     if (projects.length === 0) {
       list.innerHTML = `
@@ -3056,7 +3411,7 @@
   const drawCanvas = document.getElementById('draw-canvas');
   const drawCtx = drawCanvas.getContext('2d');
   let drawMode = false;
-  let currentColor = '#3D2C26';
+  let currentColor = '#1F2342';
   let currentTool = 'pen'; // 'pen' or 'eraser'
   let isDrawing = false;
   let activeStroke = null;
@@ -3272,6 +3627,199 @@
   });
 
   // ------- Counters -------
+  // ============== Streak engine ==============
+  //
+  // Source of truth: localStorage 'stitchnest.streak.history' = array of ISO
+  // date strings (YYYY-MM-DD, LOCAL date) for days the user logged at least
+  // one row or stitch change. Current streak, best streak, and the calendar
+  // grid all derive from this single array.
+  //
+  // Forgiveness: 1 missed day per rolling 7-day window is forgiven (the
+  // "freeze"). Two missed days inside the same 7-day window breaks the streak.
+  // Today not yet logged is fine — the streak only breaks once yesterday is
+  // also missed without a freeze available.
+
+  const STREAK_KEY = 'stitchnest.streak.history';
+
+  function streakIsoDay(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${dd}`;
+  }
+  function streakStartOfDay(d) {
+    const x = new Date(d);
+    x.setHours(0, 0, 0, 0);
+    return x;
+  }
+  function loadStreakHistory() {
+    try { return JSON.parse(localStorage.getItem(STREAK_KEY) || '[]'); }
+    catch (e) { return []; }
+  }
+  function saveStreakHistory(arr) {
+    localStorage.setItem(STREAK_KEY, JSON.stringify(arr));
+  }
+
+  function logStreakDay() {
+    const today = streakIsoDay(new Date());
+    const history = loadStreakHistory();
+    if (!history.includes(today)) {
+      history.push(today);
+      saveStreakHistory(history);
+    }
+    renderStreakCard();
+  }
+
+  function computeStreak(history) {
+    const set = new Set(history);
+    const today = streakStartOfDay(new Date());
+    // Current streak: walk backward day by day from today
+    let current = 0;
+    let freezesInWindow = 0;
+    let windowAnchor = new Date(today);
+    let cursor = new Date(today);
+    let skipTodayOnce = true; // today not logged yet shouldn't break the streak
+    while (true) {
+      const daysFromAnchor = Math.floor((windowAnchor - cursor) / 86400000);
+      if (daysFromAnchor >= 7) {
+        freezesInWindow = 0;
+        windowAnchor = new Date(cursor);
+      }
+      const dstr = streakIsoDay(cursor);
+      if (set.has(dstr)) {
+        current++;
+        skipTodayOnce = false;
+      } else if (dstr === streakIsoDay(today) && skipTodayOnce) {
+        // Today not logged yet — don't count, don't break
+        skipTodayOnce = false;
+      } else if (freezesInWindow < 1) {
+        freezesInWindow++;
+      } else {
+        break;
+      }
+      cursor.setDate(cursor.getDate() - 1);
+      if (current > 50000) break; // safety
+    }
+    // Best streak: sweep through the sorted history applying the same rule
+    const sorted = [...set].sort();
+    let best = 0;
+    let run = 0;
+    let lastDate = null;
+    let freezesB = 0;
+    let windowB = null;
+    for (const ds of sorted) {
+      const d = new Date(ds + 'T00:00:00');
+      if (!lastDate) {
+        run = 1;
+        windowB = d;
+      } else {
+        const gap = Math.round((d - lastDate) / 86400000);
+        const wd = Math.floor((d - windowB) / 86400000);
+        if (wd >= 7) { freezesB = 0; windowB = d; }
+        if (gap === 1) {
+          run++;
+        } else if (gap === 2 && freezesB < 1) {
+          freezesB++;
+          run++;
+        } else {
+          if (run > best) best = run;
+          run = 1;
+          windowB = d;
+          freezesB = 0;
+        }
+      }
+      lastDate = d;
+    }
+    if (run > best) best = run;
+    return {
+      current,
+      best: Math.max(best, current),
+      total: set.size
+    };
+  }
+
+  function renderStreakCard() {
+    const card = document.getElementById('streak-card');
+    if (!card) return;
+    const history = loadStreakHistory();
+    const { current } = computeStreak(history);
+    const countEl = document.getElementById('streak-count');
+    const labelEl = document.getElementById('streak-label');
+    const weekEl = document.getElementById('streak-week');
+    countEl.textContent = current;
+    if (current === 0) {
+      labelEl.textContent = 'log a row to start';
+    } else if (current === 1) {
+      labelEl.textContent = 'day · keep going';
+    } else {
+      labelEl.textContent = 'days · you got this';
+    }
+    // 7-dot strip: last 7 days, oldest left, today right
+    weekEl.innerHTML = '';
+    const set = new Set(history);
+    const today = streakStartOfDay(new Date());
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const dot = document.createElement('div');
+      dot.className = 'streak-dot';
+      if (set.has(streakIsoDay(d))) dot.classList.add('active');
+      if (i === 0) dot.classList.add('today');
+      weekEl.appendChild(dot);
+    }
+  }
+
+  function renderStreakSheet() {
+    const history = loadStreakHistory();
+    const { current, best, total } = computeStreak(history);
+    document.getElementById('streak-count-big').textContent = current;
+    document.getElementById('streak-label-big').textContent =
+      current === 1 ? 'day in a row' : 'days in a row';
+    document.getElementById('streak-best').textContent = best;
+    document.getElementById('streak-total').textContent = total;
+    // 8-week calendar, Sunday-first
+    const cal = document.getElementById('streak-calendar');
+    cal.innerHTML = '';
+    const today = streakStartOfDay(new Date());
+    const set = new Set(history);
+    // Find the Saturday at the end of this week
+    const dow = today.getDay(); // 0 = Sun
+    const endOfWeek = new Date(today);
+    endOfWeek.setDate(endOfWeek.getDate() + (6 - dow));
+    // Start 8 weeks back from the Sunday-start of that final week
+    const start = new Date(endOfWeek);
+    start.setDate(start.getDate() - (8 * 7 - 1));
+    for (let i = 0; i < 8 * 7; i++) {
+      const d = new Date(start);
+      d.setDate(d.getDate() + i);
+      const cell = document.createElement('div');
+      cell.className = 'streak-cal-day';
+      cell.textContent = d.getDate();
+      if (d > today) {
+        cell.classList.add('future');
+        cell.textContent = '';
+      } else if (set.has(streakIsoDay(d))) {
+        cell.classList.add('active');
+      }
+      if (streakIsoDay(d) === streakIsoDay(today)) cell.classList.add('today');
+      cal.appendChild(cell);
+    }
+  }
+
+  // Open / close the streak detail sheet
+  document.getElementById('streak-card').addEventListener('click', () => {
+    renderStreakSheet();
+    document.getElementById('streak-sheet-modal').classList.add('open');
+  });
+  document.getElementById('streak-sheet-close').addEventListener('click', () => {
+    document.getElementById('streak-sheet-modal').classList.remove('open');
+  });
+  document.getElementById('streak-sheet-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'streak-sheet-modal') {
+      e.currentTarget.classList.remove('open');
+    }
+  });
+
   function updateCount(field, delta) {
     const p = projects.find(x => x.id === currentProjectId);
     if (!p) return;
@@ -3284,6 +3832,8 @@
       maybeBuzz();
     }
     notifyNativeActivity('update', { rows: p.rows || 0, stitches: p.stitches || 0 });
+    // Any +/- on rows or stitches counts as a streak day
+    logStreakDay();
   }
   function resetCount(field) {
     const p = projects.find(x => x.id === currentProjectId);
