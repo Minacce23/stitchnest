@@ -60,7 +60,9 @@
     height: 100%;
     background-color: var(--bg);
     color: var(--ink);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    /* ui-rounded gives SF Pro Rounded on Apple, friendly rounded fallback elsewhere.
+       This is the playful aesthetic shift toward Habitz/storysprout vibes. */
+    font-family: ui-rounded, -apple-system, BlinkMacSystemFont, "SF Pro Rounded", "Segoe UI", system-ui, sans-serif;
     overscroll-behavior: none;
     /* iOS ignores the viewport meta's "user-scalable=no" for accessibility,
        which lets the user pinch-zoom the whole app. touch-action does the
@@ -141,10 +143,10 @@
     z-index: 10;
   }
   .app-title {
-    font-family: Georgia, "Times New Roman", serif;
-    font-size: 22px;
-    font-weight: 600;
-    letter-spacing: 0.3px;
+    font-family: inherit;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.4px;
     color: var(--ink);
   }
   .app-title .dot { color: var(--accent); }
@@ -172,12 +174,35 @@
   /* Home / project list */
   .empty {
     text-align: center;
-    padding: 60px 20px;
+    padding: 72px 20px 60px;
     color: var(--ink-soft);
+    position: relative;
   }
-  .empty .yarn { font-size: 56px; line-height: 1; margin-bottom: 12px; }
-  .empty h2 { margin: 0 0 6px; font-family: Georgia, serif; color: var(--ink); }
-  .empty p { margin: 0; font-size: 15px; }
+  /* Soft pastel blob behind the big emoji — pure decoration, gives the
+     empty state a hand-illustrated feel instead of a clinical placeholder. */
+  .empty::before {
+    content: "";
+    position: absolute;
+    width: 180px;
+    height: 180px;
+    top: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--sage-soft);
+    border-radius: 60% 40% 55% 45% / 50% 60% 40% 50%;
+    opacity: 0.85;
+    z-index: 0;
+  }
+  body.theme-dark .empty::before { background: var(--sage-soft); opacity: 0.5; }
+  .empty .yarn,
+  .empty h2,
+  .empty p {
+    position: relative;
+    z-index: 1;
+  }
+  .empty .yarn { font-size: 84px; line-height: 1; margin-bottom: 16px; }
+  .empty h2 { margin: 0 0 6px; font-family: inherit; font-size: 24px; font-weight: 700; letter-spacing: -0.4px; color: var(--ink); }
+  .empty p { margin: 0; font-size: 15px; line-height: 1.5; max-width: 280px; margin-left: auto; margin-right: auto; }
 
   .project-grid {
     display: grid;
@@ -190,15 +215,15 @@
   .project-card {
     background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 16px 14px;
+    border-radius: 22px;
+    padding: 20px 18px;
     cursor: pointer;
     transition: transform 0.1s ease, box-shadow 0.1s ease;
     box-shadow: var(--shadow);
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    min-height: 130px;
+    gap: 12px;
+    min-height: 150px;
     text-align: left;
     font-family: inherit;
     /* Anchor for the per-card edit button */
@@ -237,7 +262,7 @@
     font-size: 17px;
   }
   .project-folder {
-    font-size: 32px;
+    font-size: 44px;
     line-height: 1;
   }
   .project-name {
@@ -270,7 +295,7 @@
   .pattern-info-section {
     background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 14px;
+    border-radius: 22px;
     padding: 14px 14px 12px;
     margin-bottom: 16px;
     box-shadow: var(--shadow);
@@ -282,18 +307,18 @@
     margin-bottom: 12px;
   }
   .pattern-info-title {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--ink-soft);
-    font-weight: 600;
+    font-size: 17px;
+    text-transform: none;
+    letter-spacing: -0.2px;
+    color: var(--ink);
+    font-weight: 700;
   }
   .detect-btn {
     background: var(--surface-2);
     border: 1px solid var(--line);
     color: var(--ink);
-    border-radius: 8px;
-    padding: 6px 12px;
+    border-radius: 999px;
+    padding: 8px 14px;
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
@@ -314,11 +339,11 @@
     border-top: 1px solid var(--line);
   }
   .info-label {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--ink-soft);
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    text-transform: none;
+    letter-spacing: 0;
   }
   .info-input {
     width: 100%;
@@ -392,11 +417,12 @@
     gap: 4px;
   }
   .detail-title {
-    font-family: Georgia, serif;
-    font-size: 24px;
-    font-weight: 600;
+    font-family: inherit;
+    font-size: 28px;
+    font-weight: 700;
     margin: 0;
     word-break: break-word;
+    letter-spacing: -0.5px;
   }
   .detail-sub {
     color: var(--ink-soft);
@@ -482,6 +508,157 @@
   .color-swatch-card.color-mustard { background: #E8DAB0; }
   .color-swatch-card.color-lavender { background: #D8C8E0; }
   .color-swatch-card.color-mint { background: #C8E0D5; }
+
+  /* Craft type pills (Edit Project modal) */
+  .craft-type-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .craft-type-option {
+    padding: 8px 14px;
+    border: 1px solid var(--line);
+    background: var(--surface-2);
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+  .craft-type-option:active { transform: scale(0.96); }
+  .craft-type-option.active {
+    background: var(--sage-soft);
+    color: var(--sage);
+    border-color: var(--sage);
+  }
+  body.access-large .craft-type-option { font-size: 14px; padding: 10px 16px; }
+
+  /* Welcome / onboarding carousel */
+  .onboarding-modal {
+    text-align: center;
+    padding: 36px 24px 22px;
+  }
+  .onboarding-slide {
+    display: none;
+  }
+  .onboarding-slide.active {
+    display: block;
+  }
+  .onboarding-icon {
+    font-size: 64px;
+    line-height: 1;
+    margin-bottom: 22px;
+  }
+  .onboarding-modal h2 {
+    font-family: inherit;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin: 0 0 12px;
+    color: var(--ink);
+  }
+  .onboarding-modal p {
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    margin: 0 auto 28px;
+    max-width: 320px;
+  }
+  .onboarding-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 22px;
+  }
+  .onboarding-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--line);
+    transition: background 0.2s, transform 0.2s;
+  }
+  .onboarding-dot.active {
+    background: var(--accent);
+    transform: scale(1.3);
+  }
+  body.access-large .onboarding-modal h2 { font-size: 26px; }
+  body.access-large .onboarding-modal p { font-size: 17px; }
+  body.access-large .onboarding-icon { font-size: 72px; }
+
+  /* Project details sheet — a tall scrollable modal that holds the
+     "setup" sections (Pattern info, My swatch, Making for, Action rows,
+     Notes) so the main project page stays focused on counters and PDF. */
+  .details-sheet {
+    height: 90vh;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    padding: 22px 18px 28px;
+  }
+  .details-sheet h3 {
+    flex-shrink: 0;
+    margin: 0 0 14px;
+  }
+  .details-sheet-body {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -4px;
+    padding: 0 4px;
+  }
+  .details-sheet .modal-actions {
+    flex-shrink: 0;
+    margin-top: 14px;
+  }
+
+  /* "Project details" button on the main project view */
+  .view-details-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 16px 18px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+  .view-details-btn:active {
+    background: var(--surface-2);
+    transform: scale(0.99);
+  }
+  .view-details-btn .view-details-main {
+    text-align: left;
+    flex: 1;
+    min-width: 0;
+  }
+  .view-details-btn .view-details-sub {
+    display: block;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--ink-soft);
+    margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .view-details-btn .chev {
+    color: var(--ink-soft);
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-left: 12px;
+  }
+  body.access-large .view-details-btn { font-size: 17px; padding: 18px 20px; }
+  body.access-large .view-details-btn .view-details-sub { font-size: 13px; }
+
   body.theme-dark .color-swatch-card.color-default { background: var(--surface); }
   body.theme-dark .color-swatch-card.color-sage { background: #2A3D28; }
   body.theme-dark .color-swatch-card.color-rose { background: #3D2A28; }
@@ -494,7 +671,7 @@
   .pdf-section {
     background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 14px;
+    border-radius: 22px;
     margin-bottom: 16px;
     overflow: hidden;
     box-shadow: var(--shadow);
@@ -682,7 +859,7 @@
   .counter {
     background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 14px;
+    border-radius: 22px;
     padding: 16px 12px 14px;
     text-align: center;
     box-shadow: var(--shadow);
@@ -692,20 +869,22 @@
     gap: 10px;
   }
   .counter-label {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    font-size: 14px;
+    text-transform: none;
+    letter-spacing: 0;
     color: var(--ink-soft);
+    font-weight: 600;
     font-weight: 600;
   }
   .counter-value {
-    font-family: Georgia, serif;
-    font-size: 56px;
-    font-weight: 600;
+    font-family: inherit;
+    font-size: 68px;
+    font-weight: 800;
     line-height: 1;
     color: var(--ink);
     font-variant-numeric: tabular-nums;
     user-select: none;
+    letter-spacing: -1.5px;
   }
   .counter-row {
     display: flex;
@@ -717,10 +896,10 @@
     border: 1px solid var(--line);
     background: var(--surface-2);
     color: var(--ink);
-    border-radius: 10px;
-    padding: 14px 0;
-    font-size: 22px;
-    font-weight: 600;
+    border-radius: 999px;
+    padding: 16px 0;
+    font-size: 24px;
+    font-weight: 700;
     cursor: pointer;
     font-family: inherit;
     user-select: none;
@@ -791,7 +970,7 @@
   .action-section {
     background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 14px;
+    border-radius: 22px;
     padding: 14px 14px 12px;
     margin-bottom: 16px;
     box-shadow: var(--shadow);
@@ -803,18 +982,18 @@
     margin-bottom: 12px;
   }
   .action-section-title {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--ink-soft);
-    font-weight: 600;
+    font-size: 17px;
+    text-transform: none;
+    letter-spacing: -0.2px;
+    color: var(--ink);
+    font-weight: 700;
   }
   .add-action-btn {
     background: var(--surface-2);
     border: 1px solid var(--line);
     color: var(--ink);
-    border-radius: 8px;
-    padding: 6px 12px;
+    border-radius: 999px;
+    padding: 8px 14px;
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
@@ -825,9 +1004,9 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 12px;
+    padding: 12px 14px;
     background: var(--surface-2);
-    border-radius: 10px;
+    border-radius: 16px;
     border: 1px solid var(--line);
     font-size: 14px;
   }
@@ -917,9 +1096,9 @@
   }
   .modal input[type="number"] {
     width: 100%;
-    padding: 12px;
+    padding: 14px 16px;
     border: 1px solid var(--line);
-    border-radius: 10px;
+    border-radius: 16px;
     font-size: 16px;
     font-family: inherit;
     background: var(--surface-2);
@@ -930,7 +1109,7 @@
   .notes-section {
     background: var(--surface);
     border: 1px solid var(--line);
-    border-radius: 14px;
+    border-radius: 22px;
     padding: 14px 14px 12px;
     margin-bottom: 24px;
     box-shadow: var(--shadow);
@@ -942,11 +1121,11 @@
     margin-bottom: 10px;
   }
   .notes-label {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--ink-soft);
-    font-weight: 600;
+    font-size: 17px;
+    text-transform: none;
+    letter-spacing: -0.2px;
+    color: var(--ink);
+    font-weight: 700;
   }
   .notes-saved {
     font-size: 11px;
@@ -986,7 +1165,7 @@
     background: var(--surface);
     width: 100%;
     max-width: 640px;
-    border-radius: 18px 18px 0 0;
+    border-radius: 26px 26px 0 0;
     padding: 22px 20px 28px;
     animation: slideUp 0.22s ease;
   }
@@ -996,23 +1175,25 @@
   }
   .modal h3 {
     margin: 0 0 16px;
-    font-family: Georgia, serif;
-    font-size: 20px;
+    font-family: inherit;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
   }
   .modal label {
     display: block;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
     color: var(--ink-soft);
-    margin-bottom: 6px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    text-transform: none;
+    letter-spacing: 0;
   }
   .modal input[type="text"] {
     width: 100%;
-    padding: 12px;
+    padding: 14px 16px;
     border: 1px solid var(--line);
-    border-radius: 10px;
+    border-radius: 16px;
     font-size: 16px;
     font-family: inherit;
     background: var(--surface-2);
@@ -1044,13 +1225,14 @@
   }
   .btn {
     flex: 1;
-    padding: 14px;
-    border-radius: 10px;
+    padding: 15px 22px;
+    border-radius: 999px;
     border: none;
     font-size: 15px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     font-family: inherit;
+    letter-spacing: -0.1px;
   }
   .btn-primary { background: var(--accent); color: white; }
   .btn-secondary { background: var(--surface-2); color: var(--ink); border: 1px solid var(--line); }
@@ -1316,9 +1498,9 @@
     margin-bottom: 16px;
   }
   .working-on-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    font-size: 13px;
+    text-transform: none;
+    letter-spacing: 0;
     color: var(--sage);
     font-weight: 700;
     flex-shrink: 0;
@@ -1590,75 +1772,6 @@
       <input type="text" id="info-working-on" class="working-on-input" placeholder='e.g. "Right sleeve, row 24"' autocomplete="off" />
     </div>
 
-    <div class="pattern-info-section">
-      <div class="pattern-info-header">
-        <div class="pattern-info-title">Pattern info</div>
-        <button class="detect-btn" id="detect-pattern-btn" disabled>Detect from PDF</button>
-      </div>
-      <div class="info-row">
-        <div class="info-label">Yarn</div>
-        <textarea class="info-input" id="info-yarn" rows="1" placeholder="e.g. Cascade 220 worsted" autocomplete="off"></textarea>
-      </div>
-      <div class="info-row">
-        <div class="info-label">Needles / Hook</div>
-        <textarea class="info-input" id="info-needles" rows="1" placeholder="e.g. US 8 / 5mm" autocomplete="off"></textarea>
-      </div>
-      <div class="info-row">
-        <div class="info-label">Gauge</div>
-        <textarea class="info-input" id="info-gauge" rows="1" placeholder='e.g. 18 sts × 24 rows = 4″' autocomplete="off"></textarea>
-      </div>
-      <div class="detect-toast" id="detect-toast"></div>
-    </div>
-
-    <div class="pattern-info-section">
-      <div class="pattern-info-header">
-        <div class="pattern-info-title">My swatch</div>
-      </div>
-      <div class="info-row">
-        <div class="info-label">Stitches</div>
-        <div class="swatch-count-row">
-          <input type="number" inputmode="decimal" step="0.25" id="sw-sts" placeholder="—" class="swatch-num" autocomplete="off" />
-          <span class="swatch-per">per</span>
-          <select id="sw-area" class="swatch-area-select" aria-label="Swatch area">
-            <option value="in_4">4″</option>
-            <option value="cm_10">10 cm</option>
-            <option value="in_1">1″</option>
-          </select>
-        </div>
-      </div>
-      <div class="info-row">
-        <div class="info-label">Rows</div>
-        <div class="swatch-count-row">
-          <input type="number" inputmode="decimal" step="0.25" id="sw-rows" placeholder="—" class="swatch-num" autocomplete="off" />
-          <span class="swatch-per">per</span>
-          <span class="swatch-area-mirror" id="sw-area-mirror">4″</span>
-        </div>
-      </div>
-      <div class="info-row">
-        <div class="info-label">Needle / Hook</div>
-        <textarea class="info-input" id="sw-needle" rows="1" placeholder="e.g. US 9 / 5.5mm" autocomplete="off"></textarea>
-      </div>
-      <div class="swatch-compare" id="swatch-compare"></div>
-    </div>
-
-    <div class="pattern-info-section">
-      <div class="pattern-info-header">
-        <div class="pattern-info-title">Making for</div>
-        <button class="detect-btn" id="manage-people-btn">Manage people</button>
-      </div>
-      <div class="info-row">
-        <div class="info-label">Person</div>
-        <select class="info-input" id="info-person" autocomplete="off">
-          <option value="">— No one selected —</option>
-        </select>
-      </div>
-      <div id="person-display" class="person-display empty">No person selected.</div>
-      <div class="info-row" style="margin-top:6px">
-        <div class="info-label">Size making</div>
-        <textarea class="info-input" id="info-size-making" rows="1" placeholder='e.g. Medium, or "Size 2 body, Size 1 sleeves"' autocomplete="off"></textarea>
-      </div>
-    </div>
-
     <div class="pdf-section" id="pdf-section">
       <div id="pdf-loaded" class="hidden">
         <div class="pdf-controls">
@@ -1727,31 +1840,19 @@
 
     <div class="action-section">
       <div class="action-section-header">
-        <div class="action-section-title">Action rows</div>
-        <button class="add-action-btn" id="add-action-btn">+ Add</button>
-      </div>
-      <div class="action-list" id="action-list"></div>
-    </div>
-
-    <div class="action-section">
-      <div class="action-section-header">
         <div class="action-section-title">Stitch markers</div>
         <button class="add-action-btn" id="add-marker-btn">+ Add</button>
       </div>
       <div class="action-list" id="marker-list"></div>
     </div>
 
-    <div class="notes-section">
-      <div class="notes-header">
-        <div class="notes-label">Notes</div>
-        <div class="notes-saved" id="notes-saved">Saved</div>
-      </div>
-      <textarea
-        id="notes-textarea"
-        class="notes-textarea"
-        placeholder="Yarn, needles, modifications, where you left off, anything you want to remember."
-      ></textarea>
-    </div>
+    <button class="view-details-btn" id="view-details-btn" type="button">
+      <span class="view-details-main">
+        Project details
+        <span class="view-details-sub">Pattern info, swatch, person, action rows, notes</span>
+      </span>
+      <span class="chev">›</span>
+    </button>
   </section>
 </main>
 
@@ -1849,8 +1950,62 @@
       <button class="appearance-option color-swatch-card color-mint" type="button" data-color="mint" title="Mint"></button>
     </div>
 
+    <label>Craft type</label>
+    <div class="craft-type-picker" id="ep-craft-picker">
+      <button class="craft-type-option" type="button" data-craft="">None</button>
+      <button class="craft-type-option" type="button" data-craft="knit">Knit</button>
+      <button class="craft-type-option" type="button" data-craft="crochet">Crochet</button>
+      <button class="craft-type-option" type="button" data-craft="needlepoint">Needlepoint</button>
+      <button class="craft-type-option" type="button" data-craft="embroidery">Embroidery</button>
+      <button class="craft-type-option" type="button" data-craft="cross_stitch">Cross stitch</button>
+    </div>
+
     <div class="modal-actions">
       <button class="btn btn-secondary" id="ep-close" style="width:100%">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- Welcome / onboarding carousel -->
+<div class="modal-overlay" id="onboarding-modal">
+  <div class="modal onboarding-modal">
+    <div class="onboarding-slide active" data-slide="0">
+      <div class="onboarding-icon">🧶</div>
+      <h2>Welcome to stitchnest</h2>
+      <p>Your fiber craft companion. Track patterns, count stitches, and remember where you left off.</p>
+    </div>
+    <div class="onboarding-slide" data-slide="1">
+      <div class="onboarding-icon">📁</div>
+      <h2>One folder per project</h2>
+      <p>Tap the + button on the home screen to start a new project. Each folder keeps your pattern, counters, notes, and markers together.</p>
+    </div>
+    <div class="onboarding-slide" data-slide="2">
+      <div class="onboarding-icon">📄</div>
+      <h2>Patterns and counters</h2>
+      <p>Add your pattern PDF and use the big stitch and row counters as you work. Set up Action rows to get an alert before something tricky comes up.</p>
+    </div>
+    <div class="onboarding-slide" data-slide="3">
+      <div class="onboarding-icon">✎</div>
+      <h2>Make every project yours</h2>
+      <p>Tap the pencil on any card to rename it, pick a folder icon, color, or craft type. The ⋯ menu has theme, larger text, and backup settings.</p>
+    </div>
+    <div class="onboarding-slide" data-slide="4">
+      <div class="onboarding-icon">🌱</div>
+      <h2>You're all set</h2>
+      <p>Everything autosaves. Tap any project to pick up where you left off. You can replay this tour anytime from Settings.</p>
+    </div>
+
+    <div class="onboarding-dots">
+      <span class="onboarding-dot active" data-dot="0"></span>
+      <span class="onboarding-dot" data-dot="1"></span>
+      <span class="onboarding-dot" data-dot="2"></span>
+      <span class="onboarding-dot" data-dot="3"></span>
+      <span class="onboarding-dot" data-dot="4"></span>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="ob-skip">Skip</button>
+      <button class="btn btn-primary" id="ob-next">Next</button>
     </div>
   </div>
 </div>
@@ -1867,6 +2022,108 @@
       <button class="btn btn-danger" id="mk-delete" style="display:none">Delete</button>
       <button class="btn btn-secondary" id="mk-cancel">Cancel</button>
       <button class="btn btn-primary" id="mk-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Project details slide-up sheet — holds the setup sections that used to
+     live on the project page itself. Lets the main view stay focused on
+     PDF + counters while admin stuff is one tap away. -->
+<div class="modal-overlay" id="details-sheet-modal">
+  <div class="modal details-sheet">
+    <h3>Project details</h3>
+    <div class="details-sheet-body">
+      <div class="pattern-info-section">
+        <div class="pattern-info-header">
+          <div class="pattern-info-title">Pattern info</div>
+          <button class="detect-btn" id="detect-pattern-btn" disabled>Detect from PDF</button>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Yarn</div>
+          <textarea class="info-input" id="info-yarn" rows="1" placeholder="e.g. Cascade 220 worsted" autocomplete="off"></textarea>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Needles / Hook</div>
+          <textarea class="info-input" id="info-needles" rows="1" placeholder="e.g. US 8 / 5mm" autocomplete="off"></textarea>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Gauge</div>
+          <textarea class="info-input" id="info-gauge" rows="1" placeholder='e.g. 18 sts × 24 rows = 4″' autocomplete="off"></textarea>
+        </div>
+        <div class="detect-toast" id="detect-toast"></div>
+      </div>
+
+      <div class="pattern-info-section">
+        <div class="pattern-info-header">
+          <div class="pattern-info-title">My swatch</div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Stitches</div>
+          <div class="swatch-count-row">
+            <input type="number" inputmode="decimal" step="0.25" id="sw-sts" placeholder="—" class="swatch-num" autocomplete="off" />
+            <span class="swatch-per">per</span>
+            <select id="sw-area" class="swatch-area-select" aria-label="Swatch area">
+              <option value="in_4">4″</option>
+              <option value="cm_10">10 cm</option>
+              <option value="in_1">1″</option>
+            </select>
+          </div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Rows</div>
+          <div class="swatch-count-row">
+            <input type="number" inputmode="decimal" step="0.25" id="sw-rows" placeholder="—" class="swatch-num" autocomplete="off" />
+            <span class="swatch-per">per</span>
+            <span class="swatch-area-mirror" id="sw-area-mirror">4″</span>
+          </div>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Needle / Hook</div>
+          <textarea class="info-input" id="sw-needle" rows="1" placeholder="e.g. US 9 / 5.5mm" autocomplete="off"></textarea>
+        </div>
+        <div class="swatch-compare" id="swatch-compare"></div>
+      </div>
+
+      <div class="pattern-info-section">
+        <div class="pattern-info-header">
+          <div class="pattern-info-title">Making for</div>
+          <button class="detect-btn" id="manage-people-btn">Manage people</button>
+        </div>
+        <div class="info-row">
+          <div class="info-label">Person</div>
+          <select class="info-input" id="info-person" autocomplete="off">
+            <option value="">— No one selected —</option>
+          </select>
+        </div>
+        <div id="person-display" class="person-display empty">No person selected.</div>
+        <div class="info-row" style="margin-top:6px">
+          <div class="info-label">Size making</div>
+          <textarea class="info-input" id="info-size-making" rows="1" placeholder='e.g. Medium, or "Size 2 body, Size 1 sleeves"' autocomplete="off"></textarea>
+        </div>
+      </div>
+
+      <div class="action-section">
+        <div class="action-section-header">
+          <div class="action-section-title">Action rows</div>
+          <button class="add-action-btn" id="add-action-btn">+ Add</button>
+        </div>
+        <div class="action-list" id="action-list"></div>
+      </div>
+
+      <div class="notes-section">
+        <div class="notes-header">
+          <div class="notes-label">Notes</div>
+          <div class="notes-saved" id="notes-saved">Saved</div>
+        </div>
+        <textarea
+          id="notes-textarea"
+          class="notes-textarea"
+          placeholder="Yarn, needles, modifications, where you left off, anything you want to remember."
+        ></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="details-sheet-close" style="width:100%">Done</button>
     </div>
   </div>
 </div>
@@ -1968,6 +2225,13 @@
           <input type="checkbox" id="set-scroll-mode" />
           <span class="toggle-slider"></span>
         </label>
+      </div>
+      <div class="settings-item">
+        <div class="settings-item-main" style="width:100%">
+          <div class="settings-item-title">Show welcome tour</div>
+          <div class="settings-item-desc">Replay the quick five-slide tour that runs on first launch.</div>
+          <button type="button" class="btn btn-secondary" id="set-replay-tour" style="margin-top:10px;width:100%">Show tour</button>
+        </div>
       </div>
     </div>
 
@@ -3124,8 +3388,22 @@
   // ------- Pattern info (yarn / needles / gauge) -------
   // Detected via PDF.js text extraction; user can always override.
 
+  // Friendly labels for the craft type chip on the home card.
+  const CRAFT_TYPE_LABELS = {
+    knit: 'Knit',
+    crochet: 'Crochet',
+    needlepoint: 'Needlepoint',
+    embroidery: 'Embroidery',
+    cross_stitch: 'Cross stitch',
+  };
+
   function buildSpecsLine(p) {
-    // Concise spec line for the home card. Shows needles + weight when present.
+    // The user can override the auto-detected specs with a craft type label
+    // (set in Edit Project). When they do, that takes over the line entirely.
+    if (p.craftType && CRAFT_TYPE_LABELS[p.craftType]) {
+      return CRAFT_TYPE_LABELS[p.craftType];
+    }
+    // Otherwise fall back to a concise auto-detected spec line.
     const parts = [];
     if (p.needles) {
       const lines = String(p.needles).split('\n').filter(s => s.trim());
@@ -4315,11 +4593,15 @@
     if (!p) return;
     const icon = p.icon || '📁';
     const color = p.color || '';
+    const craft = p.craftType || '';
     document.querySelectorAll('#ep-icon-picker .appearance-option').forEach(b => {
       b.classList.toggle('active', b.dataset.icon === icon);
     });
     document.querySelectorAll('#ep-color-picker .appearance-option').forEach(b => {
       b.classList.toggle('active', b.dataset.color === color);
+    });
+    document.querySelectorAll('#ep-craft-picker .craft-type-option').forEach(b => {
+      b.classList.toggle('active', b.dataset.craft === craft);
     });
   }
 
@@ -4389,8 +4671,97 @@
     });
   });
 
+  // Craft type picker: tap a chip → save the craft type (empty = none)
+  // Selecting one replaces the auto-detected specs line on the home card.
+  document.querySelectorAll('#ep-craft-picker .craft-type-option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const p = getEditingProject();
+      if (!p) return;
+      p.craftType = btn.dataset.craft || null;
+      saveProjects(projects);
+      syncEditProjectPickers();
+      afterEditProjectSave(p);
+    });
+  });
+
+  // ------- Project details sheet -------
+  // A slide-up sheet that holds Pattern info, My swatch, Making for,
+  // Action rows config, and Notes. All those sections moved out of the
+  // main project view so the page stays focused on PDF + counters.
+  // Every existing handler still works because the elements just moved
+  // in the DOM — their IDs and event listeners are unchanged.
+  const detailsSheetModal = document.getElementById('details-sheet-modal');
+  document.getElementById('view-details-btn').addEventListener('click', () => {
+    detailsSheetModal.classList.add('open');
+  });
+  document.getElementById('details-sheet-close').addEventListener('click', () => {
+    detailsSheetModal.classList.remove('open');
+  });
+  detailsSheetModal.addEventListener('click', (e) => {
+    if (e.target === detailsSheetModal) detailsSheetModal.classList.remove('open');
+  });
+
+  // ------- Welcome onboarding carousel -------
+  // Shows a five-slide intro on first launch. Dismissal is persisted so it
+  // never re-appears unless the user replays it from Settings.
+  const ONBOARDING_KEY = 'stitch.onboarded.v1';
+  const onboardingModal = document.getElementById('onboarding-modal');
+  const onboardingTotalSlides = document.querySelectorAll('.onboarding-slide').length;
+  let onboardingIndex = 0;
+
+  function showOnboardingSlide(i) {
+    document.querySelectorAll('.onboarding-slide').forEach((s, idx) => {
+      s.classList.toggle('active', idx === i);
+    });
+    document.querySelectorAll('.onboarding-dot').forEach((d, idx) => {
+      d.classList.toggle('active', idx === i);
+    });
+    const nextBtn = document.getElementById('ob-next');
+    const skipBtn = document.getElementById('ob-skip');
+    const isLast = (i === onboardingTotalSlides - 1);
+    nextBtn.textContent = isLast ? 'Get started' : 'Next';
+    skipBtn.style.display = isLast ? 'none' : '';
+  }
+
+  function openOnboarding() {
+    onboardingIndex = 0;
+    showOnboardingSlide(0);
+    onboardingModal.classList.add('open');
+  }
+
+  function closeOnboarding() {
+    onboardingModal.classList.remove('open');
+    try { localStorage.setItem(ONBOARDING_KEY, '1'); } catch {}
+  }
+
+  document.getElementById('ob-skip').addEventListener('click', closeOnboarding);
+  document.getElementById('ob-next').addEventListener('click', () => {
+    if (onboardingIndex < onboardingTotalSlides - 1) {
+      onboardingIndex++;
+      showOnboardingSlide(onboardingIndex);
+    } else {
+      closeOnboarding();
+    }
+  });
+  // Replay from Settings
+  document.getElementById('set-replay-tour').addEventListener('click', () => {
+    settingsModal.classList.remove('open');
+    setTimeout(openOnboarding, 250); // wait for settings close animation
+  });
+
+  // First-launch check
+  function maybeShowOnboarding() {
+    let seen = false;
+    try { seen = localStorage.getItem(ONBOARDING_KEY) === '1'; } catch {}
+    if (!seen) {
+      // Small delay so the home grid paints first, gives a nice fade-in feel
+      setTimeout(openOnboarding, 400);
+    }
+  }
+
   // ------- Init -------
   showHome();
+  maybeShowOnboarding();
 
   // ------- PWA: register service worker -------
   // Only registers when served over http(s); local file:// loads are skipped.
